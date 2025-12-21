@@ -2,7 +2,7 @@
 import React, { useState } from "react";
 
 import { useRouter } from "next/navigation";
-
+import { HomePageDepartments } from "@/lib/type";
 
 import {
   GraduationCap,
@@ -16,10 +16,11 @@ import {
   ChevronRight,
 } from "lucide-react";
 
+
 export default function HomePage() {
   const router = useRouter();
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
-   const [selectedDepartment, setSelectedDepartment] = useState(null);
+  const [selectedDepartment, setSelectedDepartment] = useState<HomePageDepartments | null>(null);
 
   const features = [
     {
@@ -126,7 +127,7 @@ export default function HomePage() {
   const handleRegister = () => {
    router.push("/register"); // For registration
   };
-   const handleDepartmentClick = (dept) => {
+   const handleDepartmentClick = (dept : any) => {
     setSelectedDepartment(dept);
   };
 

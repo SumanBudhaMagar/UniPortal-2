@@ -1,11 +1,11 @@
 'use client';
 import { useEffect, useState } from 'react';
-import { supabase } from '@/lib/supabaseClient';
+import { supabase } from '@/lib/supabase';
 import { useRouter } from 'next/navigation';
-import { Button } from "@/components/forms/button";
-import { Card, CardHeader, CardContent, CardTitle } from "@/components/forms/card";
-import { Label } from "@/components/forms/label";
-import { Input } from "@/components/forms/input";
+import { Button } from "@/components/ui/button";
+import { Card, CardHeader, CardContent, CardTitle } from "@/components/ui/card";
+import { Label } from "@/components/ui/label";
+import { Input } from "@/components/ui/input";
 
 // Type definitions
 interface ExamHead {
