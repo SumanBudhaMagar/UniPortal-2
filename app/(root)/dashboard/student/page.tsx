@@ -1,9 +1,9 @@
 'use client';
 import { useEffect, useState } from 'react';
-import { supabase } from '@/lib/supabaseClient';
+import { supabase } from '@/lib/supabase';
 import { useRouter } from 'next/navigation';
-import { Button } from "@/components/forms/button";
-import { Card, CardHeader, CardContent, CardTitle } from "@/components/forms/card";
+import { Button } from "@/components/ui/button";
+import { Card, CardHeader, CardContent, CardTitle } from "@/components/ui/card";
 
 // Type definitions
 interface Student {
