@@ -1,8 +1,9 @@
 "use client";
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 
 import { useRouter } from "next/navigation";
 import { HomePageDepartments } from "@/lib/type";
+
 
 import {
   GraduationCap,
@@ -15,12 +16,15 @@ import {
   X,
   ChevronRight,
 } from "lucide-react";
-
+import { supabase2 } from "@/lib/supabase";
 
 export default function HomePage() {
   const router = useRouter();
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
-  const [selectedDepartment, setSelectedDepartment] = useState<HomePageDepartments | null>(null);
+  const [selectedDepartment, setSelectedDepartment] =
+    useState<HomePageDepartments | null>(null);
+  const [departmentsList, setDepartmentsList] = useState<any | null>(null);
+  const [groupedDepartments, setgroupedDepartments] = useState<any | null>(null)
 
   const features = [
     {
@@ -60,80 +64,51 @@ export default function HomePage() {
         "Connect with graduates, track career progress, and maintain lifelong engagement.",
     },
   ];
-
-  const departments = [
-    { 
-      name: "Engineering", 
-      color: "bg-blue-600 hover:bg-blue-700",
-      dean: "Dr. Rajesh Kumar",
-      programs: 5,
-      students: 1200
-    },
-    { 
-      name: "Medical Sciences", 
-      color: "bg-red-600 hover:bg-red-700",
-      dean: "Dr. Sunita Sharma",
-      programs: 3,
-      students: 800
-    },
-    {
-      name: "Business Administration",
-      color: "bg-green-600 hover:bg-green-700",
-      dean: "Prof. Anil Thapa",
-      programs: 4,
-      students: 1500
-    },
-    { 
-      name: "Arts & Humanities", 
-      color: "bg-purple-600 hover:bg-purple-700",
-      dean: "Dr. Maya Gurung",
-      programs: 6,
-      students: 950
-    },
-    { 
-      name: "Natural Sciences", 
-      color: "bg-orange-600 hover:bg-orange-700",
-      dean: "Dr. Prakash Adhikari",
-      programs: 4,
-      students: 700
-    },
-    { 
-      name: "Law", 
-      color: "bg-indigo-600 hover:bg-indigo-700",
-      dean: "Adv. Binod Karki",
-      programs: 2,
-      students: 600
-    },
-    { 
-      name: "Education", 
-      color: "bg-pink-600 hover:bg-pink-700",
-      dean: "Dr. Shanti Devi",
-      programs: 3,
-      students: 850
-    },
-    { 
-      name: "Computer Science", 
-      color: "bg-cyan-600 hover:bg-cyan-700",
-      dean: "Dr. Bikram Shrestha",
-      programs: 4,
-      students: 1100
-    },
-  ];
   //Redirect functions
-   const handleLogin = () => {
-  router.push("/login"); // For login
+  const handleLogin = () => {
+    router.push("/login"); // For login
   };
 
   const handleRegister = () => {
-   router.push("/register"); // For registration
+    router.push("/register"); // For registration
   };
-   const handleDepartmentClick = (dept : any) => {
+  const handleDepartmentClick = (dept: any) => {
     setSelectedDepartment(dept);
   };
 
   const closeDepartmentModal = () => {
     setSelectedDepartment(null);
   };
+  const groupByCategory = (departments : any) => {
+  return departments.reduce((acc : any, dept : any) => {
+    const category = dept.category;
+
+    if (!acc[category]) {
+      acc[category] = [];
+    }
+
+    acc[category].push(dept);
+    return acc;
+  }, {});
+};
+
+  const getDepartmentsList = async () => {
+    try {
+      const { data, error } = await supabase2.from("departments").select("*");
+      setDepartmentsList(data);
+      console.log("Departments",data);
+      const grouped = await groupByCategory(data);
+      setgroupedDepartments(grouped);
+     
+      
+    } catch (error) {
+      console.error(error);
+    }
+  };
+
+  useEffect(() => {
+    getDepartmentsList();
+  }, []);
 
   return (
     <div className="min-h-screen bg-linear-to-br from-slate-50 to-slate-100">
@@ -142,7 +117,7 @@ export default function HomePage() {
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex justify-between items-center h-16">
             <div className="flex items-center space-x-2">
-                <img src="/favicon.ico" alt="logo" className="w-50"/>
+              <img src="/favicon.ico" alt="logo" className="w-50" />
             </div>
 
             {/* Desktop Menu */}
@@ -174,7 +149,7 @@ export default function HomePage() {
             </div>
 
             <div className="hidden md:flex space-x-4">
-            <button
+              <button
                 onClick={handleLogin}
                 className="px-4 py-2 text-blue-600 hover:text-blue-700 transition cursor-pointer"
               >
@@ -229,22 +204,19 @@ export default function HomePage() {
                 >
                   Contact
                 </a>
-                 <button 
-  onClick={handleLogin}
-  className="px-4 py-2 text-blue-600 border border-blue-600 rounded-lg flex items-center justify-center gap-2"
->
-  
-  Login
-</button>
+                <button
+                  onClick={handleLogin}
+                  className="px-4 py-2 text-blue-600 border border-blue-600 rounded-lg flex items-center justify-center gap-2"
+                >
+                  Login
+                </button>
 
-<button 
-  onClick={handleRegister}
-  className="px-4 py-2 bg-blue-600 text-white rounded-lg flex items-center justify-center gap-2"
->
-  
-  Register
-</button>
-
+                <button
+                  onClick={handleRegister}
+                  className="px-4 py-2 bg-blue-600 text-white rounded-lg flex items-center justify-center gap-2"
+                >
+                  Register
+                </button>
               </div>
             </div>
           )}
@@ -273,7 +245,6 @@ export default function HomePage() {
                   Watch Demo
                 </button>
               </div>
-
             </div>
           </div>
         </div>
@@ -347,22 +318,28 @@ export default function HomePage() {
       </section>
 
       {/* Departments Portal Section */}
-      
+
       <section id="departments" className="py-20 bg-white">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="text-center mb-16">
-            <h2 className="text-4xl font-bold text-gray-900 mb-4">Department Portals</h2>
-            <p className="text-xl text-gray-600">Explore our departments and their programs</p>
+            <h2 className="text-4xl font-bold text-gray-900 mb-4">
+              Department Portals
+            </h2>
+            <p className="text-xl text-gray-600">
+              Explore our departments and their programs
+            </p>
           </div>
 
           <div className="grid sm:grid-cols-2 lg:grid-cols-4 gap-6">
-            {departments.map((dept, index) => (
+            {departmentsList?.map((dept: any, index: any) => (
               <button
                 key={index}
                 onClick={() => handleDepartmentClick(dept)}
-                className={`${dept.color} text-white p-6 rounded-xl font-semibold text-lg transition transform hover:scale-105 shadow-lg cursor-pointer`}
+                className={`${dept.color} text-black p-6 rounded-xl font-semibold text-lg transition transform hover:scale-105 shadow-lg cursor-pointer`}
               >
-                {dept.name}
+                {/* Department Items */}
+                {dept?.department_name}
+                {/* {console.log(dept)} */}
               </button>
             ))}
           </div>
@@ -372,31 +349,39 @@ export default function HomePage() {
       {selectedDepartment && (
         <div className="fixed inset-0 bg-black bg-opacity-50 z-50 flex items-center justify-center p-4">
           <div className="bg-white rounded-xl max-w-2xl w-full p-8 relative max-h-screen overflow-y-auto">
-            <button onClick={closeDepartmentModal} className="absolute top-4 right-4 text-gray-500 hover:text-gray-700">
+            <button
+              onClick={closeDepartmentModal}
+              className="absolute top-4 right-4 text-gray-500 hover:text-gray-700"
+            >
               <X className="w-6 h-6" />
             </button>
-            
-            <h3 className="text-3xl font-bold text-gray-900 mb-4">{selectedDepartment.name}</h3>
-            
+
+            <h3 className="text-3xl font-bold text-gray-900 mb-4">
+              {selectedDepartment.name}
+            </h3>
+
             <div className="space-y-4">
               <div className="flex items-center gap-2">
                 <Users className="w-5 h-5 text-blue-600" />
-                <span className="text-gray-700"><strong>Dean:</strong> {selectedDepartment.dean}</span>
+                <span className="text-gray-700">
+                  <strong>Dean:</strong> {selectedDepartment?.head_of_department}
+                </span>
               </div>
-              
-              <div className="flex items-center gap-2">
-                <BookOpen className="w-5 h-5 text-green-600" />
-                <span className="text-gray-700"><strong>Programs:</strong> {selectedDepartment.programs} active programs</span>
-              </div>
-              
+
+
               <div className="flex items-center gap-2">
                 <GraduationCap className="w-5 h-5 text-purple-600" />
-                <span className="text-gray-700"><strong>Students:</strong> {selectedDepartment.students} enrolled</span>
+                <span className="text-gray-700">
+                  <strong>Students:</strong> {selectedDepartment.total_students}{" "}
+                  enrolled
+                </span>
               </div>
 
               <div className="mt-6 p-4 bg-blue-50 rounded-lg">
                 <p className="text-gray-700">
-                  The {selectedDepartment.name} department offers comprehensive programs designed to prepare students for successful careers. Our dedicated faculty and modern facilities ensure excellence.
+                  The {selectedDepartment.name} department offers comprehensive
+                  programs designed to prepare students for successful careers.
+                  Our dedicated faculty and modern facilities ensure excellence.
                 </p>
               </div>
 
