@@ -2,6 +2,7 @@
 import React, {useState} from 'react'
 import { useRouter } from "next/navigation";
 import {X, Menu} from 'lucide-react';
+import Image from 'next/image';
 
 const NavigationComponent = () => {
     const router = useRouter();
@@ -20,32 +21,32 @@ const NavigationComponent = () => {
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex justify-between items-center h-16">
             <div className="flex items-center space-x-2">
-              <img src="/favicon.ico" alt="logo" className="w-50" />
+              <Image src="/favicon.ico" alt="logo" width={200} height={200} />
             </div>
 
             {/* Desktop Menu */}
             <div className="hidden md:flex space-x-8">
               <a
                 href="#overview"
-                className="text-gray-700 hover:text-blue-600 transition"
+                className="text-gray-700 hover:text-orange-600 transition"
               >
                 Overview
               </a>
               <a
                 href="#features"
-                className="text-gray-700 hover:text-blue-600 transition"
+                className="text-gray-700 hover:text-orange-600 transition"
               >
                 Features
               </a>
               <a
                 href="#departments"
-                className="text-gray-700 hover:text-blue-600 transition"
+                className="text-gray-700 hover:text-orange-600 transition"
               >
                 Departments
               </a>
               <a
                 href="#contact"
-                className="text-gray-700 hover:text-blue-600 transition"
+                className="text-gray-700 hover:text-orange-600 transition"
               >
                 Contact
               </a>
@@ -54,13 +55,13 @@ const NavigationComponent = () => {
             <div className="hidden md:flex space-x-4">
               <button
                 onClick={handleLogin}
-                className="px-4 py-2 text-blue-600 hover:text-blue-700 transition cursor-pointer"
+                className="px-4 py-2 text-orange-400 hover:text-orange-600 transition cursor-pointer"
               >
                 Login
               </button>
               <button
                 onClick={handleRegister}
-                className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition cursor-pointer"
+                className="px-4 py-2 bg-orange-400 text-white rounded-lg flex items-center justify-center gap-2 hover:bg-orange-600"
               >
                 Get Started
               </button>
@@ -85,38 +86,38 @@ const NavigationComponent = () => {
               <div className="flex flex-col space-y-3">
                 <a
                   href="#overview"
-                  className="text-gray-700 hover:text-blue-600"
+                  className="text-gray-700 hover:text-orange-600"
                 >
                   Overview
                 </a>
                 <a
                   href="#features"
-                  className="text-gray-700 hover:text-blue-600"
+                  className="text-gray-700 hover:text-orange-600"
                 >
                   Features
                 </a>
                 <a
                   href="#departments"
-                  className="text-gray-700 hover:text-blue-600"
+                  className="text-gray-700 hover:text-orange-600"
                 >
                   Departments
                 </a>
                 <a
                   href="#contact"
-                  className="text-gray-700 hover:text-blue-600"
+                  className="text-gray-700 hover:text-orange-600"
                 >
                   Contact
                 </a>
                 <button
                   onClick={handleLogin}
-                  className="px-4 py-2 text-blue-600 border border-blue-600 rounded-lg flex items-center justify-center gap-2"
+                  className="px-4 py-2 border rounded-lg flex items-center justify-center gap-2 hover:bg-orange-600"
                 >
                   Login
                 </button>
 
                 <button
                   onClick={handleRegister}
-                  className="px-4 py-2 bg-blue-600 text-white rounded-lg flex items-center justify-center gap-2"
+                  className="px-4 py-2 bg-orange-400 text-white rounded-lg flex items-center justify-center gap-2 hover:bg-orange-600"
                 >
                   Register
                 </button>

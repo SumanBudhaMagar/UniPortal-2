@@ -1,4 +1,5 @@
 import Link from "next/link";
+import Image from "next/image";
 
 export default function AuthLayout({
   children,
@@ -11,7 +12,7 @@ export default function AuthLayout({
       <header className="py-3 px-4 flex items-center justify-center gap-6">
         <Link href="/" className="flex items-center space-x-2 hover:opacity-80 transition-opacity">
           <div className="flex items-center space-x-2">
-            <img src="/favicon.ico" alt="logo" className="w-50"/>
+            <Image height={200} width={200} src="/favicon.ico" alt="logo"/>
           </div>
         </Link>
         <div className="flex flex-col items-center">
