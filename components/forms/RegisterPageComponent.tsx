@@ -406,12 +406,12 @@ const RegisterPageComponent = () => {
         </CardContent>
 
         <CardFooter className="flex flex-col space-y-4">
-          <Button type="submit" className="w-full" disabled={loading}>
+          <Button type="submit" className="w-full my-3 hover:bg-orange-600" disabled={loading}>
             {loading ? "Creating account..." : "Sign Up"}
           </Button>
           <p className="text-sm text-center text-gray-600">
             Already have an account?{" "}
-            <Link href="/login" className="text-primary hover:underline">
+            <Link href="/login" className="text-primary hover:underline hover:text-orange-600">
               Login
             </Link>
           </p>
