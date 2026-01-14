@@ -29,6 +29,7 @@ export default function TeacherManagement({
     setNewTeacher({ email: '' });
     setShowAddTeacher(false);
   };
+  
 
   return (
     <Card>
