@@ -5,3 +5,9 @@ export function cn(...inputs: ClassValue[]) {
   return twMerge(clsx(inputs));
 }
 // Grouping Departments
+
+// Marks to grade converter
+
+export function marksToGrade() {
+  
+}
