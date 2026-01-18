@@ -6,10 +6,9 @@ import { Button } from "@/components/ui/button";
 import { Card, CardHeader, CardContent, CardTitle } from "@/components/ui/card";
 import { Label } from "@/components/ui/label";
 import { Input } from "@/components/ui/input";
-import GradeEntry from '@/components/examhead/GradeEntry';
 import { ExamHead, Department, Student, Grade } from '@/components/examhead/types';
 import { getSemesterName } from '@/components/examhead/utils';
-
+import MarksEntry from '@/components/examhead/MarksEntry';
 export default function ExamHeadDashboard() {
   const router = useRouter();
   const [examHead, setExamHead] = useState<ExamHead | null>(null);
@@ -17,7 +16,8 @@ export default function ExamHeadDashboard() {
   
   // For View Results Tab
   const [departments, setDepartments] = useState<Department[]>([]);
-  const [allGrades, setAllGrades] = useState<any[]>([]);
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const [allGrades, setAllGrades] = useState<any[] | null>([]);
   const [filterDept, setFilterDept] = useState('');
   const [filterSemester, setFilterSemester] = useState('');
   const [searchQuery, setSearchQuery] = useState('');
@@ -30,9 +30,7 @@ export default function ExamHeadDashboard() {
   
   const [loading, setLoading] = useState(true);
 
-  useEffect(() => {
-    checkExamHeadAndLoadData();
-  }, []);
+  
 
   const checkExamHeadAndLoadData = async () => {
     const { data: { user } } = await supabase.auth.getUser();
@@ -60,6 +58,8 @@ export default function ExamHeadDashboard() {
 
     setLoading(false);
   };
+
+  
 
   const loadAllGrades = async () => {
     const { data } = await supabase
@@ -105,8 +105,9 @@ export default function ExamHeadDashboard() {
     await supabase.auth.signOut();
     router.push('/login');
   };
+  
 
-  const filteredGrades = allGrades.filter(grade => {
+  const filteredGrades = allGrades?.filter(grade => {
     const matchesDept = !filterDept || grade.authorized_students?.departments?.id === filterDept;
     const matchesSem = !filterSemester || grade.semester === parseInt(filterSemester);
     const matchesSearch = !searchQuery || 
@@ -122,8 +123,12 @@ export default function ExamHeadDashboard() {
            student.email.toLowerCase().includes(studentSearchQuery.toLowerCase()) ||
            student.student_id.toLowerCase().includes(studentSearchQuery.toLowerCase());
   });
+  useEffect(() => {
+    checkExamHeadAndLoadData();
+  }, []);
 
   if (loading) return <div className="p-8">Loading...</div>;
+  
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-purple-50 to-pink-100">
@@ -177,7 +182,7 @@ export default function ExamHeadDashboard() {
         </div>
 
         {activeTab === 'enter' && (
-          <GradeEntry 
+          <MarksEntry 
             examHead={examHead!} 
             departments={departments}
             onGradeSaved={() => {
@@ -241,10 +246,10 @@ export default function ExamHeadDashboard() {
 
             <Card>
               <CardHeader>
-                <CardTitle>All Published Results ({filteredGrades.length})</CardTitle>
+                <CardTitle>All Published Results ({filteredGrades?.length})</CardTitle>
               </CardHeader>
               <CardContent>
-                {filteredGrades.length === 0 ? (
+                {filteredGrades?.length === 0 ? (
                   <div className="text-center py-12 text-gray-500">
                     No results found matching your filters.
                   </div>
@@ -260,7 +265,7 @@ export default function ExamHeadDashboard() {
                       <div className="col-span-1">Type</div>
                       <div className="col-span-1">Status</div>
                     </div>
-                    {filteredGrades.map((grade) => (
+                    {filteredGrades?.map((grade) => (
                       <div key={grade.id} className="grid grid-cols-12 gap-4 p-3 bg-gray-50 rounded-lg items-center text-sm">
                         <div className="col-span-2">{grade.student_name}</div>
                         <div className="col-span-2 text-gray-600">{grade.student_id}</div>
