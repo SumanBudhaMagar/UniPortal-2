@@ -11,9 +11,9 @@ const DepartmentComponent = ({groupedDepartments} : {groupedDepartments : any}) 
     const [selectedDepartment, setSelectedDepartment] =
     useState<HomePageDepartments | null>(null);
     const categoryColors: { [key: string]: string } = {
-        "School of Arts": "bg-gradient-to-br from-pink-100 to-pink-200",
-        "School of Education": "bg-gradient-to-br from-green-100 to-green-200",
-        "School of Engineering": "bg-gradient-to-br from-blue-100 to-blue-200",
+        "School of Arts": "bg-orange-200",
+        "School of Education": "bg-orange-200",
+        "School of Engineering": "bg-orange-200",
       };
     const handleDepartmentClick = (dept: any) => {
         setSelectedDepartment(dept);
@@ -24,7 +24,7 @@ const DepartmentComponent = ({groupedDepartments} : {groupedDepartments : any}) 
       };
   return (
     <>
-    <section id="departments" className="py-20 bg-white">
+    <section id="departments" className="py-20 bg-orange-50">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="text-center mb-16">
             <h2 className="text-4xl font-bold text-gray-900 mb-4">

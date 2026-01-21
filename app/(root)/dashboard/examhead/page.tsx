@@ -131,23 +131,23 @@ export default function ExamHeadDashboard() {
   
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-purple-50 to-pink-100">
-      <div className="bg-gradient-to-r from-purple-600 to-pink-600 text-white p-6 shadow-lg">
-        <div className="max-w-7xl mx-auto flex justify-between items-center">
+    <div className="min-h-screen bg-orange-50">
+      <div className="yellow_container text-white shadow-lg">
+        <div className="max-w-7xl mx-auto flex items-end justify-end">
           <div>
-            <h1 className="text-3xl font-bold">📝 Exam Head Dashboard</h1>
-            <p className="text-purple-100">Welcome, {examHead?.name}</p>
+            <h1 className="heading text-3xl font-bold relative right-[-108px]">Exam Head Dashboard</h1>
+            <p className="sub-heading text-purple-100 relative right-[-100px]">Welcome, {examHead?.name}</p>
           </div>
           <Button 
             onClick={handleLogout}
-            className="bg-white text-purple-600 hover:bg-purple-50"
+            className="bg-white text-orange-400 hover:bg-orange-50 tag"
           >
             Logout
           </Button>
         </div>
       </div>
 
-      <div className="max-w-7xl mx-auto p-8 space-y-8">
+      <div className="max-w-7xl mx-auto p-8 space-y-8 font-work-sans">
         <div className="flex gap-2 border-b">
           <button
             onClick={() => setActiveTab('enter')}
@@ -194,7 +194,7 @@ export default function ExamHeadDashboard() {
 
         {activeTab === 'view' && (
           <>
-            <Card>
+            <Card className='login'>
               <CardHeader>
                 <CardTitle>Filter Results</CardTitle>
               </CardHeader>
@@ -244,7 +244,7 @@ export default function ExamHeadDashboard() {
               </CardContent>
             </Card>
 
-            <Card>
+            <Card className='login'>
               <CardHeader>
                 <CardTitle>All Published Results ({filteredGrades?.length})</CardTitle>
               </CardHeader>
@@ -302,7 +302,7 @@ export default function ExamHeadDashboard() {
 
         {activeTab === 'student' && (
           <>
-            <Card>
+            <Card className='login'>
               <CardHeader>
                 <CardTitle>Search Student</CardTitle>
               </CardHeader>
@@ -316,7 +316,7 @@ export default function ExamHeadDashboard() {
             </Card>
 
             <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
-              <Card>
+              <Card className='login'>
                 <CardHeader>
                   <CardTitle>All Students ({filteredStudents.length})</CardTitle>
                 </CardHeader>
@@ -326,9 +326,9 @@ export default function ExamHeadDashboard() {
                       <div
                         key={student.user_id}
                         onClick={() => handleStudentSelect(student)}
-                        className={`p-3 rounded-lg cursor-pointer transition ${
+                        className={`p-3 rounded-lg cursor-pointer transition border-2 border-black ${
                           selectedStudent?.user_id === student.user_id
-                            ? 'bg-purple-100 border-2 border-purple-500'
+                            ? 'bg-purple-100'
                             : 'bg-gray-50 hover:bg-gray-100'
                         }`}
                       >
@@ -345,7 +345,7 @@ export default function ExamHeadDashboard() {
                 </CardContent>
               </Card>
 
-              <Card>
+              <Card className='login'>
                 <CardHeader>
                   <CardTitle>
                     {selectedStudent ? `${selectedStudent.name}'s Records` : 'Select a Student'}
@@ -354,7 +354,7 @@ export default function ExamHeadDashboard() {
                 <CardContent>
                   {selectedStudent ? (
                     <>
-                      <div className="mb-4 p-4 bg-purple-50 rounded-lg">
+                      <div className="mb-4 p-4 bg-purple-50 rounded-lg border-2 border-black">
                         <div className="grid grid-cols-2 gap-2 text-sm">
                           <div><strong>Student ID:</strong> {selectedStudent.student_id}</div>
                           <div><strong>Email:</strong> {selectedStudent.email}</div>
@@ -364,7 +364,7 @@ export default function ExamHeadDashboard() {
                       </div>
 
                       {studentGrades.length === 0 ? (
-                        <div className="text-center py-8 text-gray-500">
+                        <div className="text-center py-8 text-gray-500 border-2 border-black">
                           No grades recorded yet for this student.
                         </div>
                       ) : (
@@ -376,7 +376,7 @@ export default function ExamHeadDashboard() {
                               </h3>
                               <div className="space-y-2">
                                 {studentGrades.filter(g => g.semester === semester).map((grade) => (
-                                  <div key={grade.id} className="flex justify-between items-center p-3 bg-gray-50 rounded-lg">
+                                  <div key={grade.id} className="flex justify-between items-center p-3 bg-gray-50 rounded-lg border-2 border-black">
                                     <div>
                                       <div className="font-semibold">{grade.course_name}</div>
                                       <div className="text-sm text-gray-600">

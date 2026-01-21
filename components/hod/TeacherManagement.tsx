@@ -31,12 +31,12 @@ export default function TeacherManagement({
   };
 
   return (
-    <Card>
+    <Card className='login'>
       <CardHeader className="flex flex-row justify-between items-center">
         <CardTitle>👨‍🏫 Teachers Management</CardTitle>
         <Button 
           onClick={() => setShowAddTeacher(!showAddTeacher)}
-          className="bg-blue-600 hover:bg-blue-700"
+          className="bg-white border-[2px] text-black border-black hover:bg-slate-200"
         >
           + Add Teacher
         </Button>
@@ -44,7 +44,7 @@ export default function TeacherManagement({
       
       <CardContent>
         {showAddTeacher && (
-          <div className="mb-6 p-4 bg-blue-50 rounded-lg space-y-4">
+          <div className="mb-6 p-4 bg-orange-50 rounded-lg space-y-4">
             <div>
               <Label>Teacher Email (must be registered)</Label>
               <Input
@@ -60,13 +60,13 @@ export default function TeacherManagement({
             <div className="flex gap-2">
               <Button 
                 onClick={handleAddTeacher}
-                className="bg-green-600 hover:bg-green-700"
+                className="bg-white border-[2px] text-black border-black  hover:bg-slate-200"
               >
                 Add Teacher
               </Button>
               <Button 
                 onClick={() => setShowAddTeacher(false)} 
-                className="bg-gray-400"
+                className="bg-gray-400 hover:bg-slate-400 border-[2px] border-black"
               >
                 Cancel
               </Button>
@@ -83,7 +83,7 @@ export default function TeacherManagement({
             teachers.map((teacher) => (
               <div 
                 key={teacher.id} 
-                className="flex justify-between items-center p-4 bg-gray-50 rounded-lg hover:bg-gray-100"
+                className="flex justify-between items-center p-4rounded-lg hover:bg-slate-100 border-[2px] shadow-sm shadow-slate-500 border-slate-500"
               >
                 <div>
                   <div className="font-semibold">{teacher.user_metadata?.name}</div>

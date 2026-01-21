@@ -51,28 +51,28 @@ export default function HomePage() {
   }, []);
 
   return (
-    <div className="min-h-screen bg-linear-to-br from-slate-50 to-slate-100">
+    <div className="min-h-screen bg-orange-100 font-work-sans">
       {/* Navigation */}
       <NavigationComponent/>
       {/* Hero Section */}
-      <section className="relative overflow-hidden text-black py-20">
-        <div className="absolute inset-0 bg-[url('/kathmandu_university.jpg')] bg-cover bg-center opacity-40"></div>
+      <section className="relative overflow-hidden text-black py-20 yellow_container">
+        {/* <div className="absolute inset-0 bg-[url('/kathmandu_university.jpg')] bg-cover bg-center opacity-40"></div> */}
         <div className="relative z-10 flex items-center justify-center h-full text-black">
           <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
             <div className="text-center">
-              <h1 className="text-5xl md:text-6xl font-bold mb-6">
+              <h1 className="text-5xl md:text-6xl font-bold mb-6 heading">
                 Welcome to UniPortal
               </h1>
-              <p className="text-xl md:text-2xl mb-8 text-black max-w-3xl mx-auto">
+              <p className="text-xl md:text-2xl mb-8 text-black max-w-3xl mx-auto sub-heading">
                 Your comprehensive university management solution for seamless
                 academic administration, student engagement, and institutional
                 excellence.
               </p>
               <div className="flex flex-col sm:flex-row gap-4 justify-center">
-                <button className="px-8 py-4 bg-white text-blue-600 rounded-lg font-semibold hover:bg-blue-50 transition flex items-center justify-center">
+                <button className="px-8 py-4 bg-white text-black rounded-lg font-semibold hover:bg-blue-50 transition flex items-center justify-center">
                   Explore Portal <ChevronRight className="ml-2 w-5 h-5" />
                 </button>
-                <button className="px-8 py-4 bg-transparent border-2 border-white text-white rounded-lg font-semibold hover:bg-white hover:text-blue-600 transition">
+                <button className="px-8 py-4 bg-transparent border-2 border-white text-white rounded-lg font-semibold hover:bg-white hover:text-black transition">
                   Watch Demo
                 </button>
               </div>
@@ -81,7 +81,7 @@ export default function HomePage() {
         </div>
       </section>
       {/* Overview Section */}
-      <section id="overview" className="py-20 bg-white">
+      <section id="overview" className="py-20 bg-orange-50">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="text-center mb-16">
             <h2 className="text-4xl font-bold text-gray-900 mb-4">

@@ -3,7 +3,7 @@ import RegisterPageComponent from '@/components/forms/RegisterPageComponent'
 
 const page = () => {
   return (
-    <div>
+    <div className='w-[430]'>
       <RegisterPageComponent/>
     </div>
   )

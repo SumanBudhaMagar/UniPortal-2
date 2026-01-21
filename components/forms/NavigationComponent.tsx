@@ -17,7 +17,7 @@ const NavigationComponent = () => {
     
   return (
     <>
-    <nav className="bg-white shadow-md sticky top-0 z-50">
+    <nav className="bg-orange-50 shadow-md sticky top-0 z-50 font-work-sans font-bold">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex justify-between items-center h-16">
             <div className="flex items-center space-x-2">
@@ -55,13 +55,13 @@ const NavigationComponent = () => {
             <div className="hidden md:flex space-x-4">
               <button
                 onClick={handleLogin}
-                className="px-4 py-2 text-orange-400 hover:text-orange-600 transition cursor-pointer"
+                className="px-4 py-2 text-orange-400 hover:text-orange-600 transition cursor-pointer "
               >
                 Login
               </button>
               <button
                 onClick={handleRegister}
-                className="px-4 py-2 bg-orange-400 text-white rounded-lg flex items-center justify-center gap-2 hover:bg-orange-600"
+                className="px-4 py-2 tag text-black rounded-lg flex items-center justify-center gap-2 bg-gray-200 hover:bg-gray-300"
               >
                 Get Started
               </button>

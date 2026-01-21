@@ -107,11 +107,11 @@
   }
 
   .yellow_container {
-    @apply w-full bg-primary min-h-[530px] pattern flex justify-center items-center flex-col py-10 px-6;
+    @apply w-full bg-primary min-h-[100px] pattern flex justify-between items-center flex-col py-10 px-6;
   }
 
   .tag {
-    @apply bg-secondary px-6 py-3 font-work-sans font-bold rounded-sm uppercase relative tag-tri;
+    @apply px-6 py-3 font-work-sans font-bold rounded-sm uppercase relative tag-tri;
   }
 
   .heading {
@@ -258,7 +258,7 @@
             rgba(251, 232, 67, 0.6) 50.5%,
             transparent 50.5%
     );
-    background-size: 5% 100%;
+    background-size: 6% 100%;
     background-position: center;
     background-repeat: repeat-x;
   }

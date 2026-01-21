@@ -77,7 +77,7 @@ const LoginPageComponent = () => {
     }
   };
   return (
-    <Card className="w-full max-w-md">
+    <Card className="w-full max-w-md login">
       <CardHeader>
         <CardTitle>Login</CardTitle>
         <CardDescription className="flex items-center gap-1">
