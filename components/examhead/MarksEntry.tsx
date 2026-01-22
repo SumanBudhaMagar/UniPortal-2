@@ -1,20 +1,40 @@
-// components/examhead/GradeEntry.tsx
+// components/examhead/MarksEntry.tsx
 'use client';
-import { useState} from 'react';
+import { useState } from 'react';
 import { supabase } from '@/lib/supabase';
 import { Button } from "@/components/ui/button";
 import { Card, CardHeader, CardContent, CardTitle } from "@/components/ui/card";
 import { Label } from "@/components/ui/label";
+import { Input } from '../ui/input';
 import { Department, Student, Course, Grade, ExamHead, GRADE_SCALE } from './types';
 import { getSemesterName } from './utils';
 
-interface GradeEntryProps {
+interface MarksEntryProps {
   examHead: ExamHead;
   departments: Department[];
   onGradeSaved?: () => void;
 }
 
-export default function GradeEntry({ examHead, departments, onGradeSaved }: GradeEntryProps) {
+// Function to convert marks to grade
+const convertMarksToGrade = (marks: number): { letter: string; gpa: number } | null => {
+  if (marks < 0 || marks > 100) return null;
+  
+  // Define mark ranges for each grade
+  if (marks >= 90) return { letter: 'A+', gpa: 4.0 };
+  if (marks >= 85) return { letter: 'A', gpa: 4.0 };
+  if (marks >= 80) return { letter: 'A-', gpa: 3.7 };
+  if (marks >= 75) return { letter: 'B+', gpa: 3.3 };
+  if (marks >= 70) return { letter: 'B', gpa: 3.0 };
+  if (marks >= 65) return { letter: 'B-', gpa: 2.7 };
+  if (marks >= 60) return { letter: 'C+', gpa: 2.3 };
+  if (marks >= 55) return { letter: 'C', gpa: 2.0 };
+  if (marks >= 50) return { letter: 'C-', gpa: 1.7 };
+  if (marks >= 45) return { letter: 'D+', gpa: 1.3 };
+  if (marks >= 40) return { letter: 'D', gpa: 1.0 };
+  return { letter: 'F', gpa: 0.0 };
+};
+
+export default function MarksEntry({ examHead, departments, onGradeSaved }: MarksEntryProps) {
   const [selectedDepartment, setSelectedDepartment] = useState('');
   const [selectedSemester, setSelectedSemester] = useState('1');
   const [selectedStudentForGrade, setSelectedStudentForGrade] = useState<Student | null>(null);
@@ -22,12 +42,13 @@ export default function GradeEntry({ examHead, departments, onGradeSaved }: Grad
   const [students, setStudents] = useState<Student[]>([]);
   const [courses, setCourses] = useState<Course[]>([]);
   const [studentGradesForCourses, setStudentGradesForCourses] = useState<Grade[]>([]);
-  const [examMarks, setExamMarks] = useState<number>(0);
+  const [marks, setMarks] = useState('');
   const [examType, setExamType] = useState<'regular' | 'retake'>('regular');
   const [editingGrade, setEditingGrade] = useState<Grade | null>(null);
   const [saving, setSaving] = useState(false);
-  const [teacherGrade, setTeacherGrade] = useState<any>(null);
-  const [loadingTeacherGrade, setLoadingTeacherGrade] = useState(false);
+
+  // Calculate grade from current marks input
+  const calculatedGrade = marks ? convertMarksToGrade(parseFloat(marks)) : null;
 
   const loadCourses = async (deptId: string, semester: string) => {
     const { data } = await supabase
@@ -55,26 +76,12 @@ export default function GradeEntry({ examHead, departments, onGradeSaved }: Grad
     if (data) setStudents(data);
   };
 
-  const loadTeacherGrade = async (studentUserId: string, courseId: string) => {
-    setLoadingTeacherGrade(true);
-    const { data } = await supabase
-      .from('internal_grades')
-      .select('*')
-      .eq('student_user_id', studentUserId)
-      .eq('course_id', courseId)
-      .single();
-
-    setTeacherGrade(data || null);
-    setLoadingTeacherGrade(false);
-  };
-
   const handleDepartmentChange = (deptId: string) => {
     setSelectedDepartment(deptId);
     setSelectedStudentForGrade(null);
     setSelectedCourse('');
-    setExamMarks(0);
+    setMarks('');
     setEditingGrade(null);
-    setTeacherGrade(null);
     setStudents([]);
     setCourses([]);
     setStudentGradesForCourses([]);
@@ -87,9 +94,8 @@ export default function GradeEntry({ examHead, departments, onGradeSaved }: Grad
     setSelectedSemester(semester);
     setSelectedStudentForGrade(null);
     setSelectedCourse('');
-    setExamMarks(0);
+    setMarks('');
     setEditingGrade(null);
-    setTeacherGrade(null);
     setStudents([]);
     setCourses([]);
     setStudentGradesForCourses([]);
@@ -101,9 +107,8 @@ export default function GradeEntry({ examHead, departments, onGradeSaved }: Grad
   const handleStudentSelectForGrade = async (student: Student) => {
     setSelectedStudentForGrade(student);
     setSelectedCourse('');
-    setExamMarks(0);
+    setMarks('');
     setEditingGrade(null);
-    setTeacherGrade(null);
     
     await loadCourses(selectedDepartment, selectedSemester);
     
@@ -116,69 +121,25 @@ export default function GradeEntry({ examHead, departments, onGradeSaved }: Grad
     if (data) setStudentGradesForCourses(data);
   };
 
-  const handleCourseChange = async (courseId: string) => {
-    setSelectedCourse(courseId);
-    setExamMarks(0);
-    setEditingGrade(null);
-    setTeacherGrade(null);
-    
-    if (courseId && selectedStudentForGrade) {
-      await loadTeacherGrade(selectedStudentForGrade.user_id, courseId);
-      
-      const existingGrade = getCourseGradeStatus(courseId);
-      if (existingGrade) {
-        setExamType(existingGrade.exam_type as 'regular' | 'retake');
-        setExamMarks(existingGrade.exam_marks || 0);
-      } else {
-        setExamType('regular');
-      }
-    }
-  };
-
   const getCourseGradeStatus = (courseId: string) => {
     return studentGradesForCourses.find(g => g.course_id === courseId);
   };
 
-  const calculateFinalGrade = () => {
-    if (!teacherGrade || !selectedCourse) return null;
-
-    const course = courses.find(c => c.id === selectedCourse);
-    if (!course) return null;
-
-    const teacherMarks = teacherGrade.total_marks || 0;
-    const totalMarks = teacherMarks + examMarks;
-    const percentage = totalMarks; // Since total is out of 100
-    const gradeLetter = getGradeLetter(percentage);
-    const gpa = getGPAFromGrade(gradeLetter);
-    const status = gpa >= 1.0 ? 'passed' : 'failed';
-
-    return {
-      teacherMarks,
-      examMarks,
-      totalMarks,
-      percentage,
-      gradeLetter,
-      gpa,
-      status,
-      teacherMaxMarks: course.teacher_marks_total || 25,
-      examMaxMarks: course.exam_marks_total || 75
-    };
-  };
-
   const handleSaveGrade = async () => {
-    if (!selectedStudentForGrade || !selectedCourse || !teacherGrade) {
-      alert('Please select a student and course, and ensure teacher marks are entered');
+    if (!selectedStudentForGrade || !selectedCourse || !marks) {
+      alert('Please select a student, course, and enter marks');
       return;
     }
 
-    const finalGrade = calculateFinalGrade();
-    if (!finalGrade) {
-      alert('Error calculating final grade');
+    const marksValue = parseFloat(marks);
+    if (isNaN(marksValue) || marksValue < 0 || marksValue > 100) {
+      alert('Please enter valid marks between 0 and 100');
       return;
     }
 
-    if (examMarks > finalGrade.examMaxMarks) {
-      alert(`Exam marks cannot exceed ${finalGrade.examMaxMarks}`);
+    const gradeInfo = convertMarksToGrade(marksValue);
+    if (!gradeInfo) {
+      alert('Error calculating grade from marks');
       return;
     }
 
@@ -190,8 +151,9 @@ export default function GradeEntry({ examHead, departments, onGradeSaved }: Grad
 
     try {
       const course = courses.find(c => c.id === selectedCourse);
+      
       if (!course) {
-        alert('Course not found');
+        alert('Invalid course selection');
         setSaving(false);
         return;
       }
@@ -205,12 +167,10 @@ export default function GradeEntry({ examHead, departments, onGradeSaved }: Grad
         course_name: course.course_name,
         course_code: course.course_code,
         semester: parseInt(selectedSemester),
-        teacher_marks: finalGrade.teacherMarks,
-        exam_marks: finalGrade.examMarks,
-        total_marks: finalGrade.totalMarks,
-        grade_letter: finalGrade.gradeLetter,
-        gpa: finalGrade.gpa,
-        status: finalGrade.status,
+        marks: marksValue,
+        grade_letter: gradeInfo.letter,
+        gpa: gradeInfo.gpa,
+        status: gradeInfo.gpa >= 1.0 ? 'passed' : 'failed',
         exam_type: examType,
         entered_by: examHead?.id
       };
@@ -243,7 +203,6 @@ export default function GradeEntry({ examHead, departments, onGradeSaved }: Grad
           return;
         }
 
-        // Auto-promote student if regular exam and passed
         if (examType === 'regular') {
           const nextSemester = parseInt(selectedSemester) + 1;
           if (nextSemester <= 8) {
@@ -260,7 +219,6 @@ export default function GradeEntry({ examHead, departments, onGradeSaved }: Grad
         alert('Grade saved successfully!');
       }
 
-      // Reload grades
       const { data } = await supabase
         .from('grades')
         .select('*')
@@ -270,10 +228,9 @@ export default function GradeEntry({ examHead, departments, onGradeSaved }: Grad
       if (data) setStudentGradesForCourses(data);
 
       setSelectedCourse('');
-      setExamMarks(0);
+      setMarks('');
       setEditingGrade(null);
       setExamType('regular');
-      setTeacherGrade(null);
       
       if (onGradeSaved) {
         onGradeSaved();
@@ -290,14 +247,16 @@ export default function GradeEntry({ examHead, departments, onGradeSaved }: Grad
   const handleEditGrade = (grade: Grade) => {
     setEditingGrade(grade);
     setSelectedCourse(grade.course_id);
-    setExamMarks(grade.exam_marks || 0);
+    setMarks(grade.marks?.toString() || '');
     setExamType(grade.exam_type as 'regular' | 'retake');
-    if (selectedStudentForGrade) {
-      loadTeacherGrade(selectedStudentForGrade.user_id, grade.course_id);
-    }
   };
 
-  const finalGrade = calculateFinalGrade();
+  const handleMarksChange = (value: string) => {
+    // Only allow numbers and decimal point
+    if (value === '' || /^\d*\.?\d*$/.test(value)) {
+      setMarks(value);
+    }
+  };
 
   return (
     <>
@@ -383,7 +342,7 @@ export default function GradeEntry({ examHead, departments, onGradeSaved }: Grad
             <CardHeader>
               <CardTitle>
                 {selectedStudentForGrade 
-                  ? `Enter Exam Marks - ${selectedStudentForGrade.name}` 
+                  ? `Enter Marks - ${selectedStudentForGrade.name}` 
                   : 'Select a Student'}
               </CardTitle>
             </CardHeader>
@@ -402,7 +361,17 @@ export default function GradeEntry({ examHead, departments, onGradeSaved }: Grad
                     <Label>Select Course</Label>
                     <select
                       value={selectedCourse}
-                      onChange={(e) => handleCourseChange(e.target.value)}
+                      onChange={(e) => {
+                        setSelectedCourse(e.target.value);
+                        setMarks('');
+                        setEditingGrade(null);
+                        const existingGrade = getCourseGradeStatus(e.target.value);
+                        if (existingGrade) {
+                          setExamType(existingGrade.exam_type as 'regular' | 'retake');
+                        } else {
+                          setExamType('regular');
+                        }
+                      }}
                       className="w-full px-3 py-2 border rounded-md"
                     >
                       <option value="">Select Course</option>
@@ -420,146 +389,104 @@ export default function GradeEntry({ examHead, departments, onGradeSaved }: Grad
 
                   {selectedCourse && (
                     <>
-                      {loadingTeacherGrade ? (
-                        <Alert>
-                          <AlertDescription>Loading teacher marks...</AlertDescription>
-                        </Alert>
-                      ) : !teacherGrade ? (
-                        <Alert className="bg-orange-50 border-orange-300">
-                          <AlertDescription className="text-orange-800">
-                            ⚠ Teacher has not entered marks for this student in this course yet.
-                          </AlertDescription>
-                        </Alert>
-                      ) : (
-                        <>
-                          {/* Teacher Marks Display */}
-                          <div className="p-4 bg-blue-50 border border-blue-200 rounded-lg">
-                            <h4 className="font-semibold text-blue-900 mb-2">Teacher's Marks</h4>
-                            <div className="grid grid-cols-2 md:grid-cols-3 gap-2 text-sm">
-                              {teacherGrade.attendance > 0 && (
-                                <div>Attendance: {teacherGrade.attendance}</div>
-                              )}
-                              {teacherGrade.internal > 0 && (
-                                <div>Internal: {teacherGrade.internal}</div>
-                              )}
-                              {teacherGrade.class_performance > 0 && (
-                                <div>Class Perf: {teacherGrade.class_performance}</div>
-                              )}
-                              {teacherGrade.presentation > 0 && (
-                                <div>Presentation: {teacherGrade.presentation}</div>
-                              )}
-                              {teacherGrade.mini_project > 0 && (
-                                <div>Mini Project: {teacherGrade.mini_project}</div>
-                              )}
-                              {teacherGrade.assignment > 0 && (
-                                <div>Assignment: {teacherGrade.assignment}</div>
-                              )}
-                            </div>
-                            <div className="mt-2 pt-2 border-t border-blue-300 font-semibold text-blue-900">
-                              Total Teacher Marks: {teacherGrade.total_marks} / {finalGrade?.teacherMaxMarks || 25}
-                            </div>
-                          </div>
-
-                          {/* Check for existing grade */}
-                          {(() => {
-                            const existingGrade = getCourseGradeStatus(selectedCourse);
-                            return existingGrade && !editingGrade && (
-                              <div className="p-4 bg-green-50 border border-green-200 rounded-lg">
-                                <div className="flex justify-between items-center">
-                                  <div>
-                                    <div className="font-semibold text-green-800">
-                                      Grade Already Entered
-                                    </div>
-                                    <div className="text-sm text-green-700 mt-1">
-                                      Exam Marks: <strong>{existingGrade.exam_marks}</strong> / {finalGrade?.examMaxMarks || 75}
-                                      <br />
-                                      Total: <strong>{existingGrade.total_marks}</strong> / 100
-                                      <br />
-                                      Grade: <strong>{existingGrade.grade_letter}</strong> ({existingGrade.gpa}) - {existingGrade.status}
-                                      <br />
-                                      Type: {existingGrade.exam_type === 'retake' ? 'Retake Exam' : 'Regular Exam'}
-                                    </div>
-                                  </div>
-                                  <Button
-                                    onClick={() => handleEditGrade(existingGrade)}
-                                    className="bg-blue-600 hover:bg-blue-700"
-                                  >
-                                    Edit
-                                  </Button>
+                      {(() => {
+                        const existingGrade = getCourseGradeStatus(selectedCourse);
+                        return existingGrade && !editingGrade && (
+                          <div className="p-4 bg-green-50 border border-green-200 rounded-lg">
+                            <div className="flex justify-between items-center">
+                              <div>
+                                <div className="font-semibold text-green-800">
+                                  Grade Already Entered
+                                </div>
+                                <div className="text-sm text-green-700 mt-1">
+                                  Marks: <strong>{existingGrade.marks || 'N/A'}</strong>
+                                  <br />
+                                  Grade: <strong>{existingGrade.grade_letter}</strong> ({existingGrade.gpa}) - {existingGrade.status}
+                                  <br />
+                                  Type: {existingGrade.exam_type === 'retake' ? 'Retake Exam' : 'Regular Exam'}
                                 </div>
                               </div>
-                            );
-                          })()}
+                              <Button
+                                onClick={() => handleEditGrade(existingGrade)}
+                                className="bg-blue-600 hover:bg-blue-700"
+                              >
+                                Edit
+                              </Button>
+                            </div>
+                          </div>
+                        );
+                      })()}
 
-                          {(!getCourseGradeStatus(selectedCourse) || editingGrade) && (
-                            <>
-                              <div>
-                                <Label>Exam Type</Label>
-                                <select
-                                  value={examType}
-                                  onChange={(e) => setExamType(e.target.value as 'regular' | 'retake')}
-                                  className="w-full px-3 py-2 border rounded-md"
-                                >
-                                  <option value="regular">Regular Exam</option>
-                                  <option value="retake">Retake Exam</option>
-                                </select>
-                              </div>
-
+                      {(!getCourseGradeStatus(selectedCourse) || editingGrade) && (
+                        <>
                           <div>
-                            <Label>Grade</Label>
+                            <Label>Exam Type</Label>
                             <select
-                              value={selectedGrade}
-                              onChange={(e) => setSelectedGrade(e.target.value)}
+                              value={examType}
+                              onChange={(e) => setExamType(e.target.value as 'regular' | 'retake')}
                               className="w-full px-3 py-2 border rounded-md"
                             >
-                              <option value="">Select Grade</option>
-                              {GRADE_SCALE.map((grade) => (
-                                <option key={grade.letter} value={grade.letter}>
-                                  {grade.letter} ({grade.gpa}) - {grade.gpa >= 1.0 ? 'Pass' : 'Fail'}
-                                </option>
-                              ))}
+                              <option value="regular">Regular Exam</option>
+                              <option value="retake">Retake Exam</option>
                             </select>
                           </div>
 
-                          {selectedGrade && (
-                            <div className="p-3 bg-blue-50 border border-blue-200 rounded">
-                              <div className="text-sm">
-                                <strong>Selected Grade:</strong> {selectedGrade} ({GRADE_SCALE.find(g => g.letter === selectedGrade)?.gpa})
-                                <br />
-                                <strong>Status:</strong> {(GRADE_SCALE.find(g => g.letter === selectedGrade)?.gpa || 0) >= 1.0 ? '✓ Pass' : '✗ Fail'}
-                                {examType === 'regular' && (
-                                  <>
-                                    <br />
+                          <div>
+                            <Label>Marks (0-100)</Label>
+                            <Input 
+                              type="text"
+                              value={marks}
+                              onChange={(e) => handleMarksChange(e.target.value)}
+                              placeholder="Enter marks"
+                              className="w-full"
+                            />
+                            <p className="text-xs text-gray-500 mt-1">
+                              Enter marks out of 100
+                            </p>
+                          </div>
+
+                          {calculatedGrade && marks && (
+                            <div className="p-4 bg-blue-50 border border-blue-200 rounded-lg">
+                              <div className="text-sm space-y-1">
+                                <div>
+                                  <strong>Marks Entered:</strong> {marks}/100
+                                </div>
+                                <div>
+                                  <strong>Calculated Grade:</strong> {calculatedGrade.letter} ({calculatedGrade.gpa})
+                                </div>
+                                <div>
+                                  <strong>Status:</strong> {calculatedGrade.gpa >= 1.0 ? '✓ Pass' : '✗ Fail'}
+                                </div>
+                                {examType === 'regular' && calculatedGrade.gpa >= 1.0 && (
+                                  <div className="mt-2 pt-2 border-t border-blue-300">
                                     <strong className="text-blue-700">Note:</strong> Student will be promoted to next semester after saving.
-                                  </>
+                                  </div>
                                 )}
                               </div>
                             </div>
                           )}
 
-                              <div className="flex gap-2">
-                                <Button
-                                  onClick={handleSaveGrade}
-                                  disabled={saving || examMarks === 0}
-                                  className="flex-1 bg-green-600 hover:bg-green-700"
-                                >
-                                  {saving ? 'Saving...' : (editingGrade ? 'Update Grade' : 'Save Grade')}
-                                </Button>
-                                {editingGrade && (
-                                  <Button
-                                    onClick={() => {
-                                      setEditingGrade(null);
-                                      setExamMarks(0);
-                                      setExamType('regular');
-                                    }}
-                                    className="bg-gray-500 hover:bg-gray-600"
-                                  >
-                                    Cancel
-                                  </Button>
-                                )}
-                              </div>
-                            </>
-                          )}
+                          <div className="flex gap-2">
+                            <Button
+                              onClick={handleSaveGrade}
+                              disabled={saving || !marks || !calculatedGrade}
+                              className="flex-1 bg-green-600 hover:bg-green-700"
+                            >
+                              {saving ? 'Saving...' : (editingGrade ? 'Update Grade' : 'Save Grade')}
+                            </Button>
+                            {editingGrade && (
+                              <Button
+                                onClick={() => {
+                                  setEditingGrade(null);
+                                  setMarks('');
+                                  setExamType('regular');
+                                }}
+                                className="bg-gray-500 hover:bg-gray-600"
+                              >
+                                Cancel
+                              </Button>
+                            )}
+                          </div>
                         </>
                       )}
                     </>
@@ -579,7 +506,7 @@ export default function GradeEntry({ examHead, departments, onGradeSaved }: Grad
                                     Retake
                                   </span>
                                 )}
-                                Total: {grade.total_marks}/100 | Grade: <strong>{grade.grade_letter}</strong> ({grade.gpa})
+                                Marks: <strong>{grade.marks || 'N/A'}</strong> | Grade: <strong>{grade.grade_letter}</strong> ({grade.gpa})
                               </div>
                             </div>
                             <Button
@@ -596,7 +523,7 @@ export default function GradeEntry({ examHead, departments, onGradeSaved }: Grad
                 </div>
               ) : (
                 <div className="text-center py-12 text-gray-500">
-                  Please select a student from the list to enter their exam marks.
+                  Please select a student from the list to enter their marks.
                 </div>
               )}
             </CardContent>

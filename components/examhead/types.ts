@@ -50,6 +50,7 @@ export interface Grade {
   exam_type: string;
   created_at: string;
   student_user_id?: string;
+  marks : number;
 }
 
 export interface GradeScale {
