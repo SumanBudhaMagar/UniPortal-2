@@ -17,10 +17,10 @@ export default function AttendanceManagement({
   onMarkAttendance
 }: AttendanceManagementProps) {
   const [date, setDate] = useState(new Date().toISOString().split('T')[0]);
-  const [attendance, setAttendance] = useState<Record<string, 'present' | 'absent' | 'late' | 'excused'>>({});
+  const [attendance, setAttendance] = useState<Record<string, 'present' | 'absent' | 'late' >>({});
   const [saving, setSaving] = useState(false);
 
-  const handleAttendanceChange = (studentId: string, status: 'present' | 'absent' | 'late' | 'excused') => {
+  const handleAttendanceChange = (studentId: string, status: 'present' | 'absent' | 'late' ) => {
     setAttendance(prev => ({
       ...prev,
       [studentId]: status

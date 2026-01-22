@@ -125,12 +125,13 @@ export default function MyCoursesList({ courses, onSelectCourse, onUpdateMarksBr
                       >
                         {expandedCourseId === course.id ? 'Close' : 'Configure Marks'}
                       </Button>
-                      <Button
-                        onClick={() => onSelectCourse(course)}
-                        className="bg-blue-600 hover:bg-blue-700"
-                      >
-                        Manage Students
-                      </Button>
+                    <input
+  type="radio"
+  name="course"
+  onChange={() => onSelectCourse(course)}
+  className="w-5 h-5 accent-blue-600 cursor-pointer"
+/>
+
                     </div>
                   </div>
 
