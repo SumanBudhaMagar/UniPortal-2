@@ -61,12 +61,15 @@ export default function StudentsList({
                   </div>
                   <div className="text-xs text-gray-500">{student.email}</div>
                 </div>
-                <Button
-                  onClick={() => onSelectStudent(student)}
-                  className="bg-green-600 hover:bg-green-700"
-                >
-                  Grade
-                </Button>
+                <label className="flex items-center gap-3 cursor-pointer">
+  <input
+    type="radio"
+    name="selectedStudent"
+    onChange={() => onSelectStudent(student)}
+    className="accent-green-600"
+  />
+  
+</label>
               </div>
             ))}
           </div>

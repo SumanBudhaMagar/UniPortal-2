@@ -28,10 +28,12 @@ export interface Student {
 export interface Teacher {
   id: string;
   email: string;
-  user_metadata: {
-    name: string;
-    teacher_id: string;
-  };
+  name: string | null;
+  teacher_id: string | null;
+  user_id: string | null;
+  department_id: string;
+  status: string; // 'pending' | 'registered'
+  created_at: string;
 }
 
 export interface Course {
@@ -44,6 +46,18 @@ export interface Course {
   teacher_id: string | null;
   teacher_name: string | null;
   created_at: string;
+
+  // Marking scheme (configured by HOD)
+  teacher_marks_total?: number; // e.g. 25 or 50
+  exam_marks_total?: number; // e.g. 75 or 50
+  teacher_marks_breakdown?: {
+    attendance?: number;
+    internal?: number;
+    class_performance?: number;
+    presentation?: number;
+    mini_project?: number;
+    assignment?: number;
+  };
 }
 
 export interface NewStudent {
@@ -55,6 +69,7 @@ export interface NewStudent {
 
 export interface NewTeacher {
   email: string;
+  teacherId: string;
 }
 
 export interface NewCourse {

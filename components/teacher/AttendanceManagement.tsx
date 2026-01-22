@@ -32,15 +32,20 @@ export default function AttendanceManagement({
 
     setSaving(true);
     const attendanceRecords = Object.entries(attendance).map(([studentId, status]) => {
-      const student = students.find(s => s.user_id === studentId);
-      return {
-        student_user_id: studentId,
-        student_name: student?.name,
-        course_id: course.id,
-        date,
-        status
-      };
-    });
+  const student = students.find(s => s.user_id === studentId);
+
+  return {
+    student_user_id: studentId,
+    student_name: student?.name,
+    student_id: student?.student_id, // ✅ REQUIRED
+    course_id: course.id,
+    course_name: course.course_name,
+    course_code: course.course_code,
+    date,
+    status
+  };
+});
+
 
     await onMarkAttendance(attendanceRecords);
     setAttendance({});
