@@ -28,7 +28,7 @@ export default function StudentsList({
   );
 
   return (
-    <Card>
+    <Card className = "login">
       <CardHeader>
         <CardTitle>
           👥 Students {selectedCourse && `- ${selectedCourse.course_name}`}
