@@ -1,7 +1,7 @@
 // ============================================
 // FILE 10: components/teacher/TeacherProfile.tsx
 // ============================================
-
+//teacher profile
 import { Card, CardContent } from "@/components/ui/card";
 import { Teacher } from './types';
 
