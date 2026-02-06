@@ -11,6 +11,8 @@ import StudentStatsCards from '@/components/student/StudentStatsCards';
 import CurrentCoursesList from '@/components/student/CurrentCoursesList';
 import FailedSubjectsList from '@/components/student/FailedSubjectsList';
 import AcademicResults from '@/components/student/AcademicResults';
+import AttendanceTracker from '@/components/student/AttendanceTracker';
+import InternalMarksViewer from '@/components/student/InternalMarksViewer';
 
 // Import types and utils
 import type { Student, Course, Grade } from '@/components/student/types';
@@ -172,6 +174,21 @@ export default function StudentDashboard() {
           courses={currentCourses}
           currentSemester={student?.current_semester || 1}
         />
+        {/* Attendance Tracker */}
+{student && (
+  <AttendanceTracker 
+    studentUserId={student.id}
+    currentCourses={currentCourses}
+  />
+)}
+
+{/* Internal Marks Viewer */}
+{student && (
+  <InternalMarksViewer 
+    studentUserId={student.id}
+    currentCourses={currentCourses}
+  />
+)}
 
         {/* Failed Subjects to Retake */}
         <FailedSubjectsList failedSubjects={failedSubjects} />

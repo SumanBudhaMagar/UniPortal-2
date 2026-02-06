@@ -6,7 +6,7 @@ import { Button } from "@/components/ui/button";
 import { Card, CardHeader, CardContent, CardTitle } from "@/components/ui/card";
 import { Label } from "@/components/ui/label";
 import { Input } from '../ui/input';
-import { Department, Student, Course, Grade, ExamHead, GRADE_SCALE } from './types';
+import { Department, Student, Course, Grade, ExamHead } from './types';
 import { getSemesterName } from './utils';
 
 interface MarksEntryProps {
@@ -15,11 +15,21 @@ interface MarksEntryProps {
   onGradeSaved?: () => void;
 }
 
-// Function to convert marks to grade
+interface InternalGrade {
+  id: string;
+  total_marks: number;
+  attendance: number;
+  internal: number;
+  class_performance: number;
+  presentation: number;
+  mini_project: number;
+  assignment: number;
+}
+
+// Function to convert total marks to grade
 const convertMarksToGrade = (marks: number): { letter: string; gpa: number } | null => {
   if (marks < 0 || marks > 100) return null;
   
-  // Define mark ranges for each grade
   if (marks >= 90) return { letter: 'A+', gpa: 4.0 };
   if (marks >= 85) return { letter: 'A', gpa: 4.0 };
   if (marks >= 80) return { letter: 'A-', gpa: 3.7 };
@@ -42,13 +52,34 @@ export default function MarksEntry({ examHead, departments, onGradeSaved }: Mark
   const [students, setStudents] = useState<Student[]>([]);
   const [courses, setCourses] = useState<Course[]>([]);
   const [studentGradesForCourses, setStudentGradesForCourses] = useState<Grade[]>([]);
-  const [marks, setMarks] = useState('');
+  const [examMarks, setExamMarks] = useState('');
   const [examType, setExamType] = useState<'regular' | 'retake'>('regular');
   const [editingGrade, setEditingGrade] = useState<Grade | null>(null);
   const [saving, setSaving] = useState(false);
+  const [promoting, setPromoting] = useState(false);
+  const [internalGrade, setInternalGrade] = useState<InternalGrade | null>(null);
+  const [selectedCourseInfo, setSelectedCourseInfo] = useState<Course | null>(null);
+  const [loadingInternal, setLoadingInternal] = useState(false);
 
-  // Calculate grade from current marks input
-  const calculatedGrade = marks ? convertMarksToGrade(parseFloat(marks)) : null;
+  // Calculate final grade
+  const calculateFinalGrade = () => {
+    if (!examMarks || !selectedCourseInfo) return null;
+    
+    const examMarksValue = parseFloat(examMarks);
+    const teacherMarks = internalGrade?.total_marks || 0;
+    const totalMarks = teacherMarks + examMarksValue;
+    
+    const gradeInfo = convertMarksToGrade(totalMarks);
+    
+    return {
+      totalMarks,
+      teacherMarks,
+      examMarksValue,
+      gradeInfo
+    };
+  };
+
+  const calculatedResult = calculateFinalGrade();
 
   const loadCourses = async (deptId: string, semester: string) => {
     const { data } = await supabase
@@ -76,15 +107,34 @@ export default function MarksEntry({ examHead, departments, onGradeSaved }: Mark
     if (data) setStudents(data);
   };
 
+  const loadInternalGrade = async (studentUserId: string, courseId: string) => {
+    setLoadingInternal(true);
+    const { data, error } = await supabase
+      .from('internal_grades')
+      .select('*')
+      .eq('student_user_id', studentUserId)
+      .eq('course_id', courseId)
+      .single();
+
+    if (error && error.code !== 'PGRST116') {
+      console.error('Error loading internal grade:', error);
+    }
+    
+    setInternalGrade(data || null);
+    setLoadingInternal(false);
+  };
+
   const handleDepartmentChange = (deptId: string) => {
     setSelectedDepartment(deptId);
     setSelectedStudentForGrade(null);
     setSelectedCourse('');
-    setMarks('');
+    setExamMarks('');
     setEditingGrade(null);
     setStudents([]);
     setCourses([]);
     setStudentGradesForCourses([]);
+    setInternalGrade(null);
+    setSelectedCourseInfo(null);
     if (deptId && selectedSemester) {
       loadStudents(deptId, selectedSemester);
     }
@@ -94,11 +144,13 @@ export default function MarksEntry({ examHead, departments, onGradeSaved }: Mark
     setSelectedSemester(semester);
     setSelectedStudentForGrade(null);
     setSelectedCourse('');
-    setMarks('');
+    setExamMarks('');
     setEditingGrade(null);
     setStudents([]);
     setCourses([]);
     setStudentGradesForCourses([]);
+    setInternalGrade(null);
+    setSelectedCourseInfo(null);
     if (selectedDepartment && semester) {
       loadStudents(selectedDepartment, semester);
     }
@@ -107,8 +159,10 @@ export default function MarksEntry({ examHead, departments, onGradeSaved }: Mark
   const handleStudentSelectForGrade = async (student: Student) => {
     setSelectedStudentForGrade(student);
     setSelectedCourse('');
-    setMarks('');
+    setExamMarks('');
     setEditingGrade(null);
+    setInternalGrade(null);
+    setSelectedCourseInfo(null);
     
     await loadCourses(selectedDepartment, selectedSemester);
     
@@ -121,25 +175,129 @@ export default function MarksEntry({ examHead, departments, onGradeSaved }: Mark
     if (data) setStudentGradesForCourses(data);
   };
 
+  const handleCourseChange = async (courseId: string) => {
+    setSelectedCourse(courseId);
+    setExamMarks('');
+    setEditingGrade(null);
+    setInternalGrade(null);
+    
+    const course = courses.find(c => c.id === courseId);
+    setSelectedCourseInfo(course || null);
+    
+    if (selectedStudentForGrade && courseId) {
+      await loadInternalGrade(selectedStudentForGrade.user_id, courseId);
+    }
+    
+    const existingGrade = getCourseGradeStatus(courseId);
+    if (existingGrade) {
+      setExamType(existingGrade.exam_type as 'regular' | 'retake');
+    } else {
+      setExamType('regular');
+    }
+  };
+
   const getCourseGradeStatus = (courseId: string) => {
     return studentGradesForCourses.find(g => g.course_id === courseId);
   };
 
+  const checkAllCoursesGraded = () => {
+    const gradedCourseIds = studentGradesForCourses
+      .filter(g => g.exam_type === 'regular')
+      .map(g => g.course_id);
+    const allCourseIds = courses.map(c => c.id);
+    
+    return allCourseIds.every(courseId => gradedCourseIds.includes(courseId));
+  };
+
+  const handlePromoteStudent = async () => {
+    if (!selectedStudentForGrade) return;
+
+    if (!checkAllCoursesGraded()) {
+      const ungradedCourses = courses.filter(
+        c => !studentGradesForCourses.some(g => g.course_id === c.id && g.exam_type === 'regular')
+      );
+      
+      alert(
+        `Cannot promote student. Missing grades for:\n\n${ungradedCourses
+          .map(c => `- ${c.course_code}: ${c.course_name}`)
+          .join('\n')}`
+      );
+      return;
+    }
+
+    const failedCourses = studentGradesForCourses.filter(
+      g => g.exam_type === 'regular' && g.status === 'failed'
+    );
+
+    if (failedCourses.length > 0) {
+      const proceed = confirm(
+        `Warning: Student has ${failedCourses.length} failed course(s):\n\n${failedCourses
+          .map(g => `- ${g.course_code}: ${g.grade_letter}`)
+          .join('\n')}\n\nPromote anyway?`
+      );
+      
+      if (!proceed) return;
+    }
+
+    const nextSemester = parseInt(selectedSemester) + 1;
+    if (nextSemester > 8) {
+      alert('Student is already in the final semester!');
+      return;
+    }
+
+    if (!confirm(`Promote ${selectedStudentForGrade.name} to ${getSemesterName(nextSemester)}?`)) {
+      return;
+    }
+
+    setPromoting(true);
+
+    try {
+      const { error } = await supabase
+        .from('authorized_students')
+        .update({ 
+          current_semester: nextSemester,
+          year: Math.ceil(nextSemester / 2)
+        })
+        .eq('user_id', selectedStudentForGrade.user_id);
+
+      if (error) throw error;
+
+      alert(`${selectedStudentForGrade.name} promoted to ${getSemesterName(nextSemester)}!`);
+      
+      await loadStudents(selectedDepartment, selectedSemester);
+      setSelectedStudentForGrade(null);
+      setStudentGradesForCourses([]);
+      
+      if (onGradeSaved) onGradeSaved();
+    } catch (err) {
+      alert('Error promoting student: ' + (err instanceof Error ? err.message : 'Unknown error'));
+    } finally {
+      setPromoting(false);
+    }
+  };
+
   const handleSaveGrade = async () => {
-    if (!selectedStudentForGrade || !selectedCourse || !marks) {
-      alert('Please select a student, course, and enter marks');
+    if (!selectedStudentForGrade || !selectedCourse || !examMarks) {
+      alert('Please select a student, course, and enter exam marks');
       return;
     }
 
-    const marksValue = parseFloat(marks);
-    if (isNaN(marksValue) || marksValue < 0 || marksValue > 100) {
-      alert('Please enter valid marks between 0 and 100');
+    if (!selectedCourseInfo) {
+      alert('Course information not loaded');
       return;
     }
 
-    const gradeInfo = convertMarksToGrade(marksValue);
-    if (!gradeInfo) {
-      alert('Error calculating grade from marks');
+    const examMarksValue = parseFloat(examMarks);
+    const maxExamMarks = selectedCourseInfo.exam_marks_total || 75;
+    
+    if (isNaN(examMarksValue) || examMarksValue < 0 || examMarksValue > maxExamMarks) {
+      alert(`Please enter valid exam marks between 0 and ${maxExamMarks}`);
+      return;
+    }
+
+    const result = calculateFinalGrade();
+    if (!result || !result.gradeInfo) {
+      alert('Error calculating final grade');
       return;
     }
 
@@ -150,27 +308,21 @@ export default function MarksEntry({ examHead, departments, onGradeSaved }: Mark
     setSaving(true);
 
     try {
-      const course = courses.find(c => c.id === selectedCourse);
-      
-      if (!course) {
-        alert('Invalid course selection');
-        setSaving(false);
-        return;
-      }
-
       const gradeData = {
         student_user_id: selectedStudentForGrade.user_id,
         student_email: selectedStudentForGrade.email,
         student_name: selectedStudentForGrade.name,
         student_id: selectedStudentForGrade.student_id,
         course_id: selectedCourse,
-        course_name: course.course_name,
-        course_code: course.course_code,
+        course_name: selectedCourseInfo.course_name,
+        course_code: selectedCourseInfo.course_code,
         semester: parseInt(selectedSemester),
-        marks: marksValue,
-        grade_letter: gradeInfo.letter,
-        gpa: gradeInfo.gpa,
-        status: gradeInfo.gpa >= 1.0 ? 'passed' : 'failed',
+        teacher_marks: result.teacherMarks,
+        exam_marks: result.examMarksValue,
+        total_marks: result.totalMarks,
+        grade_letter: result.gradeInfo.letter,
+        gpa: result.gradeInfo.gpa,
+        status: result.gradeInfo.gpa >= 1.0 ? 'passed' : 'failed',
         exam_type: examType,
         entered_by: examHead?.id
       };
@@ -203,19 +355,6 @@ export default function MarksEntry({ examHead, departments, onGradeSaved }: Mark
           return;
         }
 
-        if (examType === 'regular') {
-          const nextSemester = parseInt(selectedSemester) + 1;
-          if (nextSemester <= 8) {
-            await supabase
-              .from('authorized_students')
-              .update({ 
-                current_semester: nextSemester,
-                year: Math.ceil(nextSemester / 2)
-              })
-              .eq('user_id', selectedStudentForGrade.user_id);
-          }
-        }
-
         alert('Grade saved successfully!');
       }
 
@@ -228,15 +367,15 @@ export default function MarksEntry({ examHead, departments, onGradeSaved }: Mark
       if (data) setStudentGradesForCourses(data);
 
       setSelectedCourse('');
-      setMarks('');
+      setExamMarks('');
       setEditingGrade(null);
       setExamType('regular');
+      setInternalGrade(null);
+      setSelectedCourseInfo(null);
       
       if (onGradeSaved) {
         onGradeSaved();
       }
-      
-      await loadStudents(selectedDepartment, selectedSemester);
     } catch (err) {
       alert('Error: ' + (err instanceof Error ? err.message : 'Unknown error'));
     } finally {
@@ -247,14 +386,20 @@ export default function MarksEntry({ examHead, departments, onGradeSaved }: Mark
   const handleEditGrade = (grade: Grade) => {
     setEditingGrade(grade);
     setSelectedCourse(grade.course_id);
-    setMarks(grade.marks?.toString() || '');
+    setExamMarks(grade.exam_marks?.toString() || '');
     setExamType(grade.exam_type as 'regular' | 'retake');
+    
+    const course = courses.find(c => c.id === grade.course_id);
+    setSelectedCourseInfo(course || null);
+    
+    if (selectedStudentForGrade && grade.course_id) {
+      loadInternalGrade(selectedStudentForGrade.user_id, grade.course_id);
+    }
   };
 
-  const handleMarksChange = (value: string) => {
-    // Only allow numbers and decimal point
+  const handleExamMarksChange = (value: string) => {
     if (value === '' || /^\d*\.?\d*$/.test(value)) {
-      setMarks(value);
+      setExamMarks(value);
     }
   };
 
@@ -342,7 +487,7 @@ export default function MarksEntry({ examHead, departments, onGradeSaved }: Mark
             <CardHeader>
               <CardTitle>
                 {selectedStudentForGrade 
-                  ? `Enter Marks - ${selectedStudentForGrade.name}` 
+                  ? `Enter Exam Marks - ${selectedStudentForGrade.name}` 
                   : 'Select a Student'}
               </CardTitle>
             </CardHeader>
@@ -357,21 +502,35 @@ export default function MarksEntry({ examHead, departments, onGradeSaved }: Mark
                     </div>
                   </div>
 
+                  <div className="p-3 bg-blue-50 border border-blue-200 rounded-lg">
+                    <div className="flex justify-between items-center">
+                      <div>
+                        <div className="text-sm font-semibold text-blue-900">
+                          Progress: {studentGradesForCourses.filter(g => g.exam_type === 'regular').length}/{courses.length} courses graded
+                        </div>
+                        {checkAllCoursesGraded() && (
+                          <div className="text-xs text-green-700 mt-1">
+                            ✓ All courses graded - Ready to promote!
+                          </div>
+                        )}
+                      </div>
+                      {checkAllCoursesGraded() && (
+                        <Button
+                          onClick={handlePromoteStudent}
+                          disabled={promoting}
+                          className="bg-green-600 hover:bg-green-700"
+                        >
+                          {promoting ? 'Promoting...' : 'Promote'}
+                        </Button>
+                      )}
+                    </div>
+                  </div>
+
                   <div>
                     <Label>Select Course</Label>
                     <select
                       value={selectedCourse}
-                      onChange={(e) => {
-                        setSelectedCourse(e.target.value);
-                        setMarks('');
-                        setEditingGrade(null);
-                        const existingGrade = getCourseGradeStatus(e.target.value);
-                        if (existingGrade) {
-                          setExamType(existingGrade.exam_type as 'regular' | 'retake');
-                        } else {
-                          setExamType('regular');
-                        }
-                      }}
+                      onChange={(e) => handleCourseChange(e.target.value)}
                       className="w-full px-3 py-2 border rounded-md"
                     >
                       <option value="">Select Course</option>
@@ -389,6 +548,35 @@ export default function MarksEntry({ examHead, departments, onGradeSaved }: Mark
 
                   {selectedCourse && (
                     <>
+                      {loadingInternal ? (
+                        <div className="p-4 bg-gray-50 rounded-lg">
+                          <div className="text-sm text-gray-600">Loading teacher marks...</div>
+                        </div>
+                      ) : internalGrade ? (
+                        <div className="p-4 bg-green-50 border border-green-200 rounded-lg">
+                          <div className="font-semibold text-green-800 mb-2">
+                            Teacher's Internal Assessment
+                          </div>
+                          <div className="text-sm space-y-1 text-green-700">
+                            {internalGrade.attendance > 0 && <div>Attendance: {internalGrade.attendance}</div>}
+                            {internalGrade.internal > 0 && <div>Internal Exam: {internalGrade.internal}</div>}
+                            {internalGrade.class_performance > 0 && <div>Class Performance: {internalGrade.class_performance}</div>}
+                            {internalGrade.presentation > 0 && <div>Presentation: {internalGrade.presentation}</div>}
+                            {internalGrade.mini_project > 0 && <div>Mini Project: {internalGrade.mini_project}</div>}
+                            {internalGrade.assignment > 0 && <div>Assignment: {internalGrade.assignment}</div>}
+                            <div className="pt-2 mt-2 border-t border-green-300 font-semibold">
+                              Total Teacher Marks: {internalGrade.total_marks}/{selectedCourseInfo?.teacher_marks_total || 25}
+                            </div>
+                          </div>
+                        </div>
+                      ) : (
+                        <div className="p-4 bg-yellow-50 border border-yellow-200 rounded-lg">
+                          <div className="text-sm text-yellow-800">
+                            ⚠️ No internal assessment found. Teacher marks will be 0.
+                          </div>
+                        </div>
+                      )}
+
                       {(() => {
                         const existingGrade = getCourseGradeStatus(selectedCourse);
                         return existingGrade && !editingGrade && (
@@ -399,11 +587,13 @@ export default function MarksEntry({ examHead, departments, onGradeSaved }: Mark
                                   Grade Already Entered
                                 </div>
                                 <div className="text-sm text-green-700 mt-1">
-                                  Marks: <strong>{existingGrade.marks || 'N/A'}</strong>
+                                  Teacher: <strong>{existingGrade.teacher_marks || 0}</strong> | 
+                                  Exam: <strong>{existingGrade.exam_marks || 0}</strong> | 
+                                  Total: <strong>{existingGrade.total_marks || 0}</strong>
                                   <br />
                                   Grade: <strong>{existingGrade.grade_letter}</strong> ({existingGrade.gpa}) - {existingGrade.status}
                                   <br />
-                                  Type: {existingGrade.exam_type === 'retake' ? 'Retake Exam' : 'Regular Exam'}
+                                  Type: {existingGrade.exam_type === 'retake' ? 'Retake' : 'Regular'}
                                 </div>
                               </div>
                               <Button
@@ -432,36 +622,38 @@ export default function MarksEntry({ examHead, departments, onGradeSaved }: Mark
                           </div>
 
                           <div>
-                            <Label>Marks (0-100)</Label>
+                            <Label>Exam Marks (0-{selectedCourseInfo?.exam_marks_total || 75})</Label>
                             <Input 
                               type="text"
-                              value={marks}
-                              onChange={(e) => handleMarksChange(e.target.value)}
-                              placeholder="Enter marks"
+                              value={examMarks}
+                              onChange={(e) => handleExamMarksChange(e.target.value)}
+                              placeholder={`Enter exam marks out of ${selectedCourseInfo?.exam_marks_total || 75}`}
                               className="w-full"
                             />
                             <p className="text-xs text-gray-500 mt-1">
-                              Enter marks out of 100
+                              Enter only exam marks. Teacher marks will be added automatically.
                             </p>
                           </div>
 
-                          {calculatedGrade && marks && (
+                          {calculatedResult && examMarks && (
                             <div className="p-4 bg-blue-50 border border-blue-200 rounded-lg">
                               <div className="text-sm space-y-1">
+                                <div className="font-semibold text-blue-900 mb-2">Final Calculation:</div>
                                 <div>
-                                  <strong>Marks Entered:</strong> {marks}/100
+                                  Teacher Marks: <strong>{calculatedResult.teacherMarks}</strong>/{selectedCourseInfo?.teacher_marks_total || 25}
                                 </div>
                                 <div>
-                                  <strong>Calculated Grade:</strong> {calculatedGrade.letter} ({calculatedGrade.gpa})
+                                  Exam Marks: <strong>{calculatedResult.examMarksValue}</strong>/{selectedCourseInfo?.exam_marks_total || 75}
+                                </div>
+                                <div className="pt-2 mt-2 border-t border-blue-300">
+                                  <strong>Total:</strong> {calculatedResult.totalMarks}/100
                                 </div>
                                 <div>
-                                  <strong>Status:</strong> {calculatedGrade.gpa >= 1.0 ? '✓ Pass' : '✗ Fail'}
+                                  <strong>Grade:</strong> {calculatedResult.gradeInfo?.letter} ({calculatedResult.gradeInfo?.gpa})
                                 </div>
-                                {examType === 'regular' && calculatedGrade.gpa >= 1.0 && (
-                                  <div className="mt-2 pt-2 border-t border-blue-300">
-                                    <strong className="text-blue-700">Note:</strong> Student will be promoted to next semester after saving.
-                                  </div>
-                                )}
+                                <div>
+                                  <strong>Status:</strong> {calculatedResult.gradeInfo && calculatedResult.gradeInfo.gpa >= 1.0 ? '✓ Pass' : '✗ Fail'}
+                                </div>
                               </div>
                             </div>
                           )}
@@ -469,16 +661,16 @@ export default function MarksEntry({ examHead, departments, onGradeSaved }: Mark
                           <div className="flex gap-2">
                             <Button
                               onClick={handleSaveGrade}
-                              disabled={saving || !marks || !calculatedGrade}
+                              disabled={saving || !examMarks || !calculatedResult}
                               className="flex-1 bg-green-600 hover:bg-green-700"
                             >
-                              {saving ? 'Saving...' : (editingGrade ? 'Update Grade' : 'Save Grade')}
+                              {saving ? 'Saving...' : (editingGrade ? 'Update' : 'Save Grade')}
                             </Button>
                             {editingGrade && (
                               <Button
                                 onClick={() => {
                                   setEditingGrade(null);
-                                  setMarks('');
+                                  setExamMarks('');
                                   setExamType('regular');
                                 }}
                                 className="bg-gray-500 hover:bg-gray-600"
@@ -495,10 +687,10 @@ export default function MarksEntry({ examHead, departments, onGradeSaved }: Mark
                   {studentGradesForCourses.length > 0 && (
                     <div className="mt-6">
                       <h3 className="font-semibold mb-2">Grades Entered ({studentGradesForCourses.length})</h3>
-                      <div className="space-y-2">
+                      <div className="space-y-2 max-h-[400px] overflow-y-auto">
                         {studentGradesForCourses.map((grade) => (
                           <div key={grade.id} className="flex justify-between items-center p-3 bg-gray-50 rounded-lg">
-                            <div>
+                            <div className="flex-1">
                               <div className="font-semibold">{grade.course_code}</div>
                               <div className="text-sm text-gray-600">
                                 {grade.exam_type === 'retake' && (
@@ -506,7 +698,11 @@ export default function MarksEntry({ examHead, departments, onGradeSaved }: Mark
                                     Retake
                                   </span>
                                 )}
-                                Marks: <strong>{grade.marks || 'N/A'}</strong> | Grade: <strong>{grade.grade_letter}</strong> ({grade.gpa})
+                                T: <strong>{grade.teacher_marks || 0}</strong> | 
+                                E: <strong>{grade.exam_marks || 0}</strong> | 
+                                Total: <strong>{grade.total_marks || 0}</strong>
+                                <br />
+                                Grade: <strong>{grade.grade_letter}</strong> ({grade.gpa})
                               </div>
                             </div>
                             <Button
@@ -523,7 +719,7 @@ export default function MarksEntry({ examHead, departments, onGradeSaved }: Mark
                 </div>
               ) : (
                 <div className="text-center py-12 text-gray-500">
-                  Please select a student from the list to enter their marks.
+                  Please select a student from the list to enter their exam marks.
                 </div>
               )}
             </CardContent>
