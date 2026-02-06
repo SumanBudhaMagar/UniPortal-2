@@ -50,7 +50,7 @@ export default function ExamHeadSection({
   };
 
   return (
-    <Card>
+    <Card className="login">
       {/* Header */}
       <CardHeader className="flex flex-row justify-between items-center">
         <CardTitle>📝 Exam Heads</CardTitle>

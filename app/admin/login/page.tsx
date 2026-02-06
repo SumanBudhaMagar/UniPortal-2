@@ -77,7 +77,7 @@ export default function AdminLogin() {
 
   return (
     
-     <Card className="w-full max-w-md">
+     <Card className="w-full max-w-md login">
         <CardHeader>
         
          <CardTitle className="text-2xl text-center font-bold">

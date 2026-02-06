@@ -167,7 +167,7 @@ export default function MarksEntry({ examHead, departments, onGradeSaved }: Mark
         course_name: course.course_name,
         course_code: course.course_code,
         semester: parseInt(selectedSemester),
-        marks: marksValue,
+        exam_marks: marksValue,
         grade_letter: gradeInfo.letter,
         gpa: gradeInfo.gpa,
         status: gradeInfo.gpa >= 1.0 ? 'passed' : 'failed',

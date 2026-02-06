@@ -65,7 +65,7 @@ export default function HODSection({
   };
 
   return (
-    <Card>
+    <Card className="login">
       {/* Header */}
       <CardHeader className="flex flex-row justify-between items-center">
         <CardTitle>👥 HODs (Heads of Department)</CardTitle>

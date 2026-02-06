@@ -45,7 +45,7 @@ export default function DepartmentsSection({
   };
 
   return (
-    <Card>
+    <Card className="login">
       {/* Header */}
       <CardHeader className="flex flex-row justify-between items-center">
         <CardTitle>🏢 Departments</CardTitle>
