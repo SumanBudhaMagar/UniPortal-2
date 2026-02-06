@@ -10,6 +10,7 @@ import StatsCards from '@/components/hod/StatsCards';
 import StudentManagement from '@/components/hod/StudentManagement';
 import TeacherManagement from '@/components/hod/TeacherManagement';
 import CourseManagement from '@/components/hod/CourseManagement';
+import { toast } from 'react-toastify';
 
 // Import types and utils
 import type { 
@@ -92,7 +93,7 @@ export default function HODDashboard() {
       .order('created_at', { ascending: false });
 
     if (error) {
-      alert('Error loading teachers: ' + error.message);
+      toast.error('Error loading teachers: ' + error.message);
       return;
     }
 
@@ -112,7 +113,7 @@ export default function HODDashboard() {
 
   const handleAddStudent = async (newStudent: NewStudent) => {
   if (!validateStudentEmail(newStudent.email)) {
-    alert('Student email must end with @student.ku.edu.np');
+    toast.info('Student email must end with @student.ku.edu.np');
     return;
   }
 
@@ -132,13 +133,13 @@ export default function HODDashboard() {
     }]);
 
   if (!error) {
-    alert('Student added successfully! They can now register with this email.');
+    toast.success('Student added successfully! They can now register with this email.');
     loadStudents();
   } else {
     if (error.code === '23505') {
-      alert('This email is already registered for this department.');
+      toast.info('This email is already registered for this department.');
     } else {
-      alert('Error: ' + error.message);
+      toast.error('Error: ' + error.message);
     }
   }
 };
@@ -152,7 +153,7 @@ export default function HODDashboard() {
     const dataLines = lines.slice(1);
     
     if (dataLines.length === 0) {
-      alert('CSV file is empty');
+      toast.info('CSV file is empty');
       return;
     }
 
@@ -195,7 +196,7 @@ export default function HODDashboard() {
     }
 
     if (studentsToAdd.length === 0) {
-      alert('No valid students to add');
+      toast.info('No valid students to add');
       return;
     }
 
@@ -204,13 +205,13 @@ export default function HODDashboard() {
       .insert(studentsToAdd);
 
     if (error) {
-      alert('Error uploading students: ' + error.message);
+      toast.error('Error uploading students: ' + error.message);
     } else {
       let message = `Successfully added ${studentsToAdd.length} students!`;
       if (errors.length > 0) {
         message += `\n\nErrors:\n${errors.join('\n')}`;
       }
-      alert(message);
+      toast.success(message);
       loadStudents();
     }
   };
@@ -226,7 +227,7 @@ export default function HODDashboard() {
       .eq('id', id);
 
     if (!error) {
-      alert('Student removed!');
+      toast.success('Student removed!');
       loadStudents();
     }
   };
@@ -236,17 +237,17 @@ export default function HODDashboard() {
     const teacherId = newTeacher.teacherId.trim();
 
     if (!teacherEmail) {
-      alert('Please enter teacher email');
+      toast.info('Please enter teacher email');
       return;
     }
 
     if (!teacherId) {
-      alert('Please enter teacher ID');
+      toast.info('Please enter teacher ID');
       return;
     }
 
     if (teacherEmail.endsWith('@student.ku.edu.np')) {
-      alert('Invalid teacher email.');
+      toast.info('Invalid teacher email.');
       return;
     }
 
@@ -262,13 +263,13 @@ export default function HODDashboard() {
       ]);
 
     if (!error) {
-      alert('Teacher email authorized! They can now register with this email.');
+      toast.success('Teacher email authorized! They can now register with this email.');
       loadTeachers();
     } else {
       if (error.code === '23505') {
-        alert('This teacher email is already authorized.');
+        toast.info('This teacher email is already authorized.');
       } else {
-        alert('Error: ' + error.message);
+        toast.error('Error: ' + error.message);
       }
     }
   };
@@ -291,13 +292,13 @@ export default function HODDashboard() {
       }]);
 
     if (!error) {
-      alert('Course added successfully!');
+      toast.success('Course added successfully!');
       loadCourses();
     } else {
       if (error.code === '23505') {
-        alert('A course with this code already exists.');
+        toast.info('A course with this code already exists.');
       } else {
-        alert('Error: ' + error.message);
+        toast.error('Error: ' + error.message);
       }
     }
   };
@@ -311,7 +312,7 @@ export default function HODDashboard() {
       .eq('id', id);
 
     if (!error) {
-      alert('Course deleted!');
+      toast.success('Course deleted!');
       loadCourses();
     }
   };
@@ -328,10 +329,10 @@ export default function HODDashboard() {
       .eq('id', courseId);
 
     if (!error) {
-      alert('Course teacher updated!');
+      toast.success('Course teacher updated!');
       loadCourses();
     } else {
-      alert('Error: ' + error.message);
+      toast.error('Error: ' + error.message);
     }
   };
 
@@ -340,14 +341,6 @@ export default function HODDashboard() {
     payload: {
       teacher_marks_total: number;
       exam_marks_total: number;
-      teacher_marks_breakdown: {
-        attendance: number;
-        internal: number;
-        class_performance: number;
-        presentation: number;
-        mini_project: number;
-        assignment: number;
-      };
     }
   ) => {
     const { error } = await supabase
@@ -355,15 +348,14 @@ export default function HODDashboard() {
       .update({
         teacher_marks_total: payload.teacher_marks_total,
         exam_marks_total: payload.exam_marks_total,
-        teacher_marks_breakdown: payload.teacher_marks_breakdown,
       })
       .eq('id', courseId);
 
     if (!error) {
-      alert('Course marks scheme updated!');
+      toast.success('Course marks scheme updated!');
       loadCourses();
     } else {
-      alert('Error: ' + error.message);
+      toast.error('Error: ' + error.message);
     }
   };
 

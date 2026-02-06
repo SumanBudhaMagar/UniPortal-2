@@ -399,7 +399,7 @@ export default function TeacherDashboard() {
 
   // ========== MAIN RENDER ==========
   return (
-    <div className="min-h-screen bg-gradient-to-br from-blue-50 via-purple-50 to-pink-50">
+    <div className="min-h-screen bg-gradient-to-br from-blue-50 via-purple-50 to-pink-50 font-work-sans">
       <div className="max-w-7xl mx-auto p-6 space-y-6">
         
         {/* Success Message */}
@@ -420,7 +420,7 @@ export default function TeacherDashboard() {
           </div>
           <Button 
             onClick={handleLogout} 
-            className="bg-white text-blue-700 hover:bg-blue-50 border border-blue-200 shadow-sm"
+            className="tag hover:bg-orange-500"
           >
             Logout
           </Button>
@@ -438,7 +438,7 @@ export default function TeacherDashboard() {
 
         {/* Main Tabs Navigation */}
         <Tabs defaultValue="overview" className="space-y-6">
-          <TabsList className="grid grid-cols-5 w-full bg-white border shadow-sm">
+          <TabsList className="grid grid-cols-5 w-full bg-white border shadow-sm ">
             <TabsTrigger value="overview" className="data-[state=active]:bg-blue-600 data-[state=active]:text-white">
               📋 Overview
             </TabsTrigger>
@@ -474,7 +474,7 @@ export default function TeacherDashboard() {
                   onSelectStudent={setSelectedStudent}
                 />
               ) : (
-                <Card className="shadow-md">
+                <Card className="shadow-md login">
                   <CardHeader>
                     <CardTitle className="flex items-center gap-2">
                       <span>👥</span> Quick Summary

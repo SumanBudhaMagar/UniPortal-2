@@ -77,7 +77,7 @@ export default function MyCoursesList({ courses, onSelectCourse, onUpdateMarksBr
   };
 
   return (
-    <Card>
+    <Card className='login'>
       <CardHeader>
         <CardTitle>📚 My Courses</CardTitle>
       </CardHeader>
@@ -153,10 +153,10 @@ export default function MyCoursesList({ courses, onSelectCourse, onUpdateMarksBr
                           ['presentation', 'Presentation'],
                           ['mini_project', 'Mini Project'],
                           ['assignment', 'Assignments'],
-                        ] as const).map(([key, label, icon]) => (
+                        ] as const).map(([key, label]) => (
                           <div key={key}>
                             <Label className="text-sm font-medium">
-                              {icon} {label}
+                              {label}
                             </Label>
                             <Input
                               type="number"

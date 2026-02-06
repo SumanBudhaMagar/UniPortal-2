@@ -80,13 +80,13 @@ const LoginPageComponent = () => {
     <Card className="w-full max-w-md login">
       <CardHeader>
         <CardTitle>Login</CardTitle>
-        <CardDescription className="flex items-center gap-1">
-          Enter your credentials to access your account
+        <CardDescription className="">
+          <p className="">Enter your credentials to access your account</p>
           <Link
             href="/admin/login"
-            className="text-xs text-gray-400 hover:text-gray-600"
+            className="text-sm text-gray-400 hover:text-gray-600 my-2 block"
           >
-            •
+            Click here if you are an admin
           </Link>
         </CardDescription>
       </CardHeader>
