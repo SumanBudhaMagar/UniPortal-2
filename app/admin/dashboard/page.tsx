@@ -7,6 +7,8 @@ import DashboardStats from '@/components/admin/DashboardStats';
 import DepartmentsSection from '@/components/admin/DepartmentsSection';
 import HODSection from "@/components/admin/HODSection";
 import ExamHeadSection from '@/components/admin/ExamHeadSection';
+import { toast } from 'react-toastify';
+
 
 
 // Type definitions
@@ -126,11 +128,11 @@ const handleAddDepartment = async (data: {
     ]);
 
   if (error) {
-    alert('Error adding department: ' + error.message);
+    toast.error('Error adding department: ' + error.message);
     return;
   }
 
-  alert('Department added successfully!');
+  toast.success('Department added successfully!');
   loadData();
 };
 
@@ -141,7 +143,7 @@ const handleAddHOD = async (data: {
   departmentId: string;
 }) => {
   if (!data.departmentId) {
-    alert("Please select a department!");
+    toast.info("Please select a department!");
     return;
   }
 
@@ -153,7 +155,7 @@ const handleAddHOD = async (data: {
     .single();
 
   if (existingHOD) {
-    alert("This department already has a HOD! Remove the existing HOD first.");
+    toast.info("This department already has a HOD! Remove the existing HOD first.");
     return;
   }
 
@@ -167,9 +169,9 @@ const handleAddHOD = async (data: {
     }]);
 
   if (error) {
-    alert("Error: " + error.message);
+    toast.error("Error: " + error.message);
   } else {
-    alert(`HOD authorized! ${data.email} can now register.`);
+    toast.success(`HOD authorized! ${data.email} can now register.`);
     loadData();
   }
 };
@@ -184,7 +186,7 @@ const handleAddHOD = async (data: {
       .eq('id', id);
 
     if (!error) {
-      alert('Department deleted!');
+      toast.success('Department deleted!');
       loadData();
     }
   };
@@ -198,7 +200,7 @@ const handleAddHOD = async (data: {
       .eq('id', id);
 
     if (!error) {
-      alert('HOD removed!');
+      toast.success('HOD removed!');
       loadData();
     }
   };
@@ -212,7 +214,7 @@ const handleAddExamHead = async (data: { name: string; email: string }) => {
     .single();
 
   if (existingExamHead) {
-    alert('An Exam Head with this email already exists!');
+    toast.info('An Exam Head with this email already exists!');
     return;
   }
 
@@ -226,10 +228,10 @@ const handleAddExamHead = async (data: { name: string; email: string }) => {
     }]);
 
   if (!error) {
-    alert(`Exam Head authorized! ${data.email} can now register as Exam Head.`);
+    toast.success(`Exam Head authorized! ${data.email} can now register as Exam Head.`);
     loadData();
   } else {
-    alert('Error: ' + error.message);
+    toast.error('Error: ' + error.message);
   }
 };
 
@@ -243,7 +245,7 @@ const handleAddExamHead = async (data: { name: string; email: string }) => {
       .eq('id', id);
 
     if (!error) {
-      alert('Exam Head removed!');
+      toast.success('Exam Head removed!');
       loadData();
     }
   };

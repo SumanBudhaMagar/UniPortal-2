@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import { Geist, Geist_Mono } from "next/font/google";
 import "@/styles/globals.css";
 import localFont from "next/font/local";
+import { ToastProvider } from "@/components/ui/ToastProvider";
 
 
 const geistSans = Geist({
@@ -76,6 +77,7 @@ export default function RootLayout({
         className={`${workSans.variable}`}
       >
         {children}
+        <ToastProvider />
         <script
           src="https://kit.fontawesome.com/695c0ad021.js"
           crossOrigin="anonymous"
