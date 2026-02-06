@@ -126,6 +126,41 @@ const RegisterPageComponent = () => {
       setDepartment(studentAuth.department_id);
     }
 
+    // For teachers, check if they're authorized
+    type TeacherAuth = {
+      email: string;
+      teacher_id: string | null;
+      department_id: string;
+      status: string;
+      departments?: { name: string; code: string };
+    };
+
+    let teacherAuth: TeacherAuth | null = null;
+    if (userType === 'teacher') {
+      const { data: teacherAuthData, error: authError } = await supabase
+        .from('authorized_teachers')
+        .select('email, teacher_id, department_id, status, departments(name, code)')
+        .eq('email', email)
+        .single();
+
+      if (authError || !teacherAuthData) {
+        setError('Your email is not authorized to register as a teacher. Please contact your HOD.');
+        return;
+      }
+
+      if (teacherAuthData.status === 'registered') {
+        setError('This email has already been registered. Please login instead.');
+        return;
+      }
+
+      if (!teacherAuthData.teacher_id) {
+        setError('Your teacher ID is not set yet. Please contact your HOD.');
+        return;
+      }
+
+      teacherAuth = teacherAuthData as TeacherAuth;
+    }
+
     if (!department && (userType === "student" || userType === "hod")) {
       setError("Please select a department.");
       return;
@@ -172,7 +207,10 @@ const RegisterPageComponent = () => {
         userMetadata.department_code = studentAuth?.departments?.code;
       } else if (userType === "teacher") {
         userMetadata.name = name;
-        userMetadata.teacher_id = generateUUID();
+        userMetadata.teacher_id = teacherAuth!.teacher_id;
+        userMetadata.department_id = teacherAuth!.department_id;
+        userMetadata.department_name = teacherAuth?.departments?.name;
+        userMetadata.department_code = teacherAuth?.departments?.code;
       } else if (userType === "hod") {
         userMetadata.name = name;
         const selectedDept = departments.find(d => d.id === department);
@@ -213,6 +251,19 @@ const RegisterPageComponent = () => {
           .update({ 
             status: 'registered',
             user_id: data.user.id 
+          })
+          .eq('email', email);
+      }
+
+      // If teacher, update status to 'registered' and link user_id
+      if (userType === 'teacher' && data.user) {
+        await supabase
+          .from('authorized_teachers')
+          .update({
+            status: 'registered',
+            user_id: data.user.id,
+            name: name,
+            teacher_id: teacherAuth!.teacher_id
           })
           .eq('email', email);
       }

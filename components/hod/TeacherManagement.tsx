@@ -18,17 +18,22 @@ export default function TeacherManagement({
   onAddTeacher,
 }: TeacherManagementProps) {
   const [showAddTeacher, setShowAddTeacher] = useState(false);
-  const [newTeacher, setNewTeacher] = useState<NewTeacher>({ email: '' });
+  const [newTeacher, setNewTeacher] = useState<NewTeacher>({ email: '', teacherId: '' });
 
   const handleAddTeacher = async () => {
     if (!newTeacher.email) {
       alert('Please enter teacher email');
       return;
     }
+    if (!newTeacher.teacherId) {
+      alert('Please enter teacher ID');
+      return;
+    }
     await onAddTeacher(newTeacher);
-    setNewTeacher({ email: '' });
+    setNewTeacher({ email: '', teacherId: '' });
     setShowAddTeacher(false);
   };
+  
 
   return (
     <Card className='login'>
@@ -44,18 +49,31 @@ export default function TeacherManagement({
       
       <CardContent>
         {showAddTeacher && (
-          <div className="mb-6 p-4 bg-orange-50 rounded-lg space-y-4">
-            <div>
-              <Label>Teacher Email (must be registered)</Label>
-              <Input
-                type="email"
-                value={newTeacher.email}
-                onChange={(e) => setNewTeacher({email: e.target.value})}
-                placeholder="teacher@ku.edu.np"
-              />
-              <p className="text-xs text-gray-600 mt-1">
-                Note: Teacher must be registered in the system first
-              </p>
+          <div className="mb-6 p-4 bg-blue-50 rounded-lg space-y-4">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div>
+                <Label>Teacher Email</Label>
+                <Input
+                  type="email"
+                  value={newTeacher.email}
+                  onChange={(e) => setNewTeacher({ ...newTeacher, email: e.target.value })}
+                  placeholder="teacher@ku.edu.np"
+                />
+                <p className="text-xs text-gray-600 mt-1">
+                  This email will be allowed to register as a teacher.
+                </p>
+              </div>
+              <div>
+                <Label>Teacher ID</Label>
+                <Input
+                  value={newTeacher.teacherId}
+                  onChange={(e) => setNewTeacher({ ...newTeacher, teacherId: e.target.value })}
+                  placeholder="T2024-001"
+                />
+                <p className="text-xs text-gray-600 mt-1">
+                  This ID will show in the teacher dashboard.
+                </p>
+              </div>
             </div>
             <div className="flex gap-2">
               <Button 
@@ -83,14 +101,21 @@ export default function TeacherManagement({
             teachers.map((teacher) => (
               <div 
                 key={teacher.id} 
-                className="flex justify-between items-center p-4rounded-lg hover:bg-slate-100 border-[2px] shadow-sm shadow-slate-500 border-slate-500"
+                className="flex justify-between items-center p-4 rounded-lg hover:bg-slate-100 border-[2px] shadow-sm shadow-slate-500 border-slate-500"
               >
                 <div>
-                  <div className="font-semibold">{teacher.user_metadata?.name}</div>
+                  <div className="font-semibold">{teacher.name || '—'}</div>
                   <div className="text-sm text-gray-600">{teacher.email}</div>
                   <div className="text-xs text-gray-500">
-                    ID: {teacher.user_metadata?.teacher_id}
+                    ID: {teacher.teacher_id || '—'}
                   </div>
+                </div>
+                <div className="text-xs font-semibold">
+                  {teacher.status === 'registered' ? (
+                    <span className="bg-green-100 text-green-700 px-2 py-1 rounded">Registered</span>
+                  ) : (
+                    <span className="bg-yellow-100 text-yellow-700 px-2 py-1 rounded">Pending</span>
+                  )}
                 </div>
               </div>
             ))

@@ -9,10 +9,12 @@ import { Input } from "@/components/ui/input";
 import { ExamHead, Department, Student, Grade } from '@/components/examhead/types';
 import { getSemesterName } from '@/components/examhead/utils';
 import MarksEntry from '@/components/examhead/MarksEntry';
+
+
 export default function ExamHeadDashboard() {
   const router = useRouter();
   const [examHead, setExamHead] = useState<ExamHead | null>(null);
-  const [activeTab, setActiveTab] = useState<'enter' | 'view' | 'student'>('enter');
+  const [activeTab, setActiveTab] = useState<'enter'| 'student'>('enter');
   
   // For View Results Tab
   const [departments, setDepartments] = useState<Department[]>([]);
@@ -59,20 +61,51 @@ export default function ExamHeadDashboard() {
     setLoading(false);
   };
 
-  
+const loadAllGrades = async () => {
+  // Get all grades
+  const { data: gradesData, error: gradesError } = await supabase
+    .from('grades')
+    .select('*')
+    .order('created_at', { ascending: false });
 
-  const loadAllGrades = async () => {
-    const { data } = await supabase
-      .from('grades')
-      .select(`
-        *,
-        authorized_students!inner(name, email, student_id, departments(name, code))
-      `)
-      .order('created_at', { ascending: false });
+  if (gradesError) {
+    console.error("Grades error:", gradesError);
+    setAllGrades([]);
+    return;
+  }
 
-    if (data) setAllGrades(data);
-  };
+  // Get all authorized students with departments
+  const { data: studentsData, error: studentsError } = await supabase
+    .from('authorized_students')
+    .select(`
+      user_id,
+      name,
+      email,
+      student_id,
+      department_id,
+      departments(id, name, code)
+    `);
 
+  if (studentsError) {
+    console.error("Students error:", studentsError);
+    setAllGrades([]);
+    return;
+  }
+
+  // Create a map for quick lookup
+  const studentsMap = new Map(
+    studentsData?.map(student => [student.user_id, student]) || []
+  );
+
+  // Combine the data
+  const enrichedGrades = gradesData?.map(grade => ({
+    ...grade,
+    authorized_students: studentsMap.get(grade.student_user_id) || null
+  })) || [];
+
+  console.log("Total grades found:", enrichedGrades.length);
+  setAllGrades(enrichedGrades);
+};
   const loadAllStudents = async () => {
     const { data } = await supabase
       .from('authorized_students')
@@ -159,16 +192,7 @@ export default function ExamHeadDashboard() {
           >
             📝 Enter Grades
           </button>
-          <button
-            onClick={() => setActiveTab('view')}
-            className={`px-6 py-3 font-semibold ${
-              activeTab === 'view'
-                ? 'border-b-2 border-purple-600 text-purple-600'
-                : 'text-gray-600 hover:text-gray-800'
-            }`}
-          >
-            📊 View All Results
-          </button>
+       
           <button
             onClick={() => setActiveTab('student')}
             className={`px-6 py-3 font-semibold ${
@@ -192,7 +216,7 @@ export default function ExamHeadDashboard() {
           />
         )}
 
-        {activeTab === 'view' && (
+        {activeTab === "student" && (
           <>
             <Card className='login'>
               <CardHeader>

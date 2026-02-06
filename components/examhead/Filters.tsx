@@ -26,6 +26,7 @@ export default function Filters({
   getSemesterName
 }: FiltersProps) {
   return (
+    
     <Card>
       <CardHeader>
         <CardTitle>Select Department & Semester</CardTitle>

@@ -34,10 +34,6 @@ export default function HODDashboard() {
   const [courses, setCourses] = useState<Course[]>([]);
   const [loading, setLoading] = useState(true);
 
-  useEffect(() => {
-    checkHODAndLoadData();
-  }, []);
-
   const checkHODAndLoadData = async () => {
     const { data: { user } } = await supabase.auth.getUser();
     
@@ -73,6 +69,11 @@ export default function HODDashboard() {
     setLoading(false);
   };
 
+  useEffect(() => {
+    void checkHODAndLoadData();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
   const loadStudents = async () => {
     const { data } = await supabase
       .from('authorized_students')
@@ -84,15 +85,18 @@ export default function HODDashboard() {
   };
 
   const loadTeachers = async () => {
-    const { data } = await supabase.auth.admin.listUsers();
-    
-    if (data) {
-      const deptTeachers = data.users.filter(user => 
-        user.user_metadata?.role === 'teacher' && 
-        user.user_metadata?.department_id === params.departmentId
-      );
-      setTeachers(deptTeachers as any);
+    const { data, error } = await supabase
+      .from('authorized_teachers')
+      .select('*')
+      .eq('department_id', params.departmentId)
+      .order('created_at', { ascending: false });
+
+    if (error) {
+      alert('Error loading teachers: ' + error.message);
+      return;
     }
+
+    if (data) setTeachers(data as Teacher[]);
   };
 
   const loadCourses = async () => {
@@ -228,49 +232,49 @@ export default function HODDashboard() {
   };
 
   const handleAddTeacher = async (newTeacher: NewTeacher) => {
-    const { data: { users }, error } = await supabase.auth.admin.listUsers();
-    
-    if (error) {
-      alert('Error checking teacher: ' + error.message);
+    const teacherEmail = newTeacher.email.toLowerCase().trim();
+    const teacherId = newTeacher.teacherId.trim();
+
+    if (!teacherEmail) {
+      alert('Please enter teacher email');
       return;
     }
 
-    const teacher = users.find(u => 
-      u.email === newTeacher.email && u.user_metadata?.role === 'teacher'
-    );
-
-    if (!teacher) {
-      alert('No teacher found with this email. They must register as a teacher first.');
+    if (!teacherId) {
+      alert('Please enter teacher ID');
       return;
     }
 
-    if (teacher.user_metadata?.department_id === params.departmentId) {
-      alert('This teacher is already in your department.');
+    if (teacherEmail.endsWith('@student.ku.edu.np')) {
+      alert('Invalid teacher email.');
       return;
     }
 
-    const { error: updateError } = await supabase.auth.admin.updateUserById(
-      teacher.id,
-      {
-        user_metadata: {
-          ...teacher.user_metadata,
+    const { error } = await supabase
+      .from('authorized_teachers')
+      .insert([
+        {
+          email: teacherEmail,
+          teacher_id: teacherId,
           department_id: params.departmentId,
-          department_name: department?.name,
-          department_code: department?.code
+          status: 'pending'
         }
-      }
-    );
+      ]);
 
-    if (!updateError) {
-      alert('Teacher added to department successfully!');
+    if (!error) {
+      alert('Teacher email authorized! They can now register with this email.');
       loadTeachers();
     } else {
-      alert('Error: ' + updateError.message);
+      if (error.code === '23505') {
+        alert('This teacher email is already authorized.');
+      } else {
+        alert('Error: ' + error.message);
+      }
     }
   };
 
   const handleAddCourse = async (newCourse: NewCourse) => {
-    const teacher = teachers.find(t => t.id === newCourse.teacherId);
+    const teacher = teachers.find(t => t.user_id === newCourse.teacherId);
     
     const { error } = await supabase
       .from('courses')
@@ -282,7 +286,7 @@ export default function HODDashboard() {
         year: parseInt(newCourse.year),
         credits: parseInt(newCourse.credits),
         teacher_id: newCourse.teacherId || null,
-        teacher_name: teacher?.user_metadata?.name || null,
+        teacher_name: teacher?.name || null,
         created_by: hod?.id
       }]);
 
@@ -309,6 +313,57 @@ export default function HODDashboard() {
     if (!error) {
       alert('Course deleted!');
       loadCourses();
+    }
+  };
+
+  const handleAssignTeacherToCourse = async (courseId: string, teacherUserId: string | null) => {
+    const teacher = teacherUserId ? teachers.find(t => t.user_id === teacherUserId) : null;
+
+    const { error } = await supabase
+      .from('courses')
+      .update({
+        teacher_id: teacherUserId,
+        teacher_name: teacher?.name || null,
+      })
+      .eq('id', courseId);
+
+    if (!error) {
+      alert('Course teacher updated!');
+      loadCourses();
+    } else {
+      alert('Error: ' + error.message);
+    }
+  };
+
+  const handleUpdateCourseMarksScheme = async (
+    courseId: string,
+    payload: {
+      teacher_marks_total: number;
+      exam_marks_total: number;
+      teacher_marks_breakdown: {
+        attendance: number;
+        internal: number;
+        class_performance: number;
+        presentation: number;
+        mini_project: number;
+        assignment: number;
+      };
+    }
+  ) => {
+    const { error } = await supabase
+      .from('courses')
+      .update({
+        teacher_marks_total: payload.teacher_marks_total,
+        exam_marks_total: payload.exam_marks_total,
+        teacher_marks_breakdown: payload.teacher_marks_breakdown,
+      })
+      .eq('id', courseId);
+
+    if (!error) {
+      alert('Course marks scheme updated!');
+      loadCourses();
+    } else {
+      alert('Error: ' + error.message);
     }
   };
 
@@ -366,6 +421,8 @@ export default function HODDashboard() {
           teachers={teachers}
           onAddCourse={handleAddCourse}
           onDeleteCourse={handleDeleteCourse}
+          onAssignTeacher={handleAssignTeacherToCourse}
+          onUpdateMarksScheme={handleUpdateCourseMarksScheme}
         />
       </div>
     </div>
