@@ -14,28 +14,28 @@ interface DashboardStatsProps {
 export default function DashboardStats({ departmentsCount, hodsCount, examHeadsCount, noHodCount }: DashboardStatsProps) {
   return (
     <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
-          <Card className="bg-gradient-to-br from-blue-500 to-blue-600 text-white">
+          <Card className="login text-black">
             <CardContent className="pt-6">
               <div className="text-4xl font-bold">{departmentsCount}</div>
-              <div className="text-blue-100">Total Departments</div>
+              <div className="text-black">Total Departments</div>
             </CardContent>
           </Card>
-          <Card className="bg-gradient-to-br from-green-500 to-green-600 text-white">
+          <Card className="login text-black">
             <CardContent className="pt-6">
               <div className="text-4xl font-bold">{hodsCount}</div>
-              <div className="text-green-100">HODs</div>
+              <div className="text-black">HODs</div>
             </CardContent>
           </Card>
-          <Card className="bg-gradient-to-br from-purple-500 to-purple-600 text-white">
+          <Card className="login text-black">
             <CardContent className="pt-6">
               <div className="text-4xl font-bold">{examHeadsCount}</div>
-              <div className="text-purple-100">Exam Heads</div>
+              <div className="text-black">Exam Heads</div>
             </CardContent>
           </Card>
-          <Card className="bg-gradient-to-br from-orange-500 to-orange-600 text-white">
+          <Card className="login text-black">
             <CardContent className="pt-6">
               <div className="text-4xl font-bold">{noHodCount}</div>
-              <div className="text-orange-100">Depts Without HOD</div>
+              <div className="text-black">Depts Without HOD</div>
             </CardContent>
           </Card>
         </div>

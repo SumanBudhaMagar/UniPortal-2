@@ -81,12 +81,12 @@ export default function CourseManagement({
   };
 
   return (
-    <Card>
+    <Card className='login'>
       <CardHeader className="flex flex-row justify-between items-center">
         <CardTitle>📚 Courses Management</CardTitle>
         <Button 
           onClick={() => setShowAddCourse(!showAddCourse)}
-          className="bg-purple-600 hover:bg-purple-700"
+          className="bg-white border-[2px] text-black border-black hover:bg-slate-200"
         >
           + Add Course
         </Button>
@@ -94,7 +94,7 @@ export default function CourseManagement({
       
       <CardContent>
         {showAddCourse && (
-          <div className="mb-6 p-4 bg-purple-50 rounded-lg space-y-4">
+          <div className="mb-6 p-4 bg-orange-50 rounded-lg space-y-4">
             <div className="grid grid-cols-2 gap-4">
               <div>
                 <Label>Course Name</Label>
@@ -174,13 +174,13 @@ export default function CourseManagement({
             <div className="flex gap-2">
               <Button 
                 onClick={handleAddCourse}
-                className="bg-purple-600 hover:bg-purple-700"
+                className="bg-white border-[2px] text-black border-black hover:bg-slate-100"
               >
                 Add Course
               </Button>
               <Button 
                 onClick={() => setShowAddCourse(false)} 
-                className="bg-gray-400"
+                className="bg-gray-400 hover:bg-slate-400 border-[2px] border-black"
               >
                 Cancel
               </Button>
@@ -188,7 +188,7 @@ export default function CourseManagement({
           </div>
         )}
 
-        <div className="space-y-4">
+        <div className="space-y-4 ">
           {courses.length === 0 ? (
             <div className="text-center py-8 text-gray-500">
               No courses created yet. Add courses for your department.
@@ -205,6 +205,7 @@ export default function CourseManagement({
                     {getSemesterName(sem)}
                   </h3>
                   <div className="space-y-2">
+
                     {semCourses.map((course) => {
                       const registeredTeachers = teachers.filter(t => t.status === 'registered' && !!t.user_id);
 

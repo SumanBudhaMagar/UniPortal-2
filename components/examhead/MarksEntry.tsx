@@ -6,7 +6,7 @@ import { Button } from "@/components/ui/button";
 import { Card, CardHeader, CardContent, CardTitle } from "@/components/ui/card";
 import { Label } from "@/components/ui/label";
 import { Input } from '../ui/input';
-import { Department, Student, Course, Grade, ExamHead } from './types';
+import { Department, Student, Course, Grade, ExamHead, GRADE_SCALE } from './types';
 import { getSemesterName } from './utils';
 
 interface MarksEntryProps {
@@ -25,7 +25,16 @@ interface InternalGrade {
   mini_project: number;
   assignment: number;
 }
-
+interface InternalGrade {
+  id: string;
+  total_marks: number;
+  attendance: number;
+  internal: number;
+  class_performance: number;
+  presentation: number;
+  mini_project: number;
+  assignment: number;
+}
 // Function to convert total marks to grade
 const convertMarksToGrade = (marks: number): { letter: string; gpa: number } | null => {
   if (marks < 0 || marks > 100) return null;
@@ -317,12 +326,10 @@ export default function MarksEntry({ examHead, departments, onGradeSaved }: Mark
         course_name: selectedCourseInfo.course_name,
         course_code: selectedCourseInfo.course_code,
         semester: parseInt(selectedSemester),
-        teacher_marks: result.teacherMarks,
-        exam_marks: result.examMarksValue,
-        total_marks: result.totalMarks,
-        grade_letter: result.gradeInfo.letter,
-        gpa: result.gradeInfo.gpa,
-        status: result.gradeInfo.gpa >= 1.0 ? 'passed' : 'failed',
+        marks: marksValue,
+        grade_letter: gradeInfo.letter,
+        gpa: gradeInfo.gpa,
+        status: gradeInfo.gpa >= 1.0 ? 'passed' : 'failed',
         exam_type: examType,
         entered_by: examHead?.id
       };
@@ -405,14 +412,14 @@ export default function MarksEntry({ examHead, departments, onGradeSaved }: Mark
 
   return (
     <>
-      <Card>
+      <Card className='font-work-sans font-normal login'>
         <CardHeader>
           <CardTitle>Select Department & Semester</CardTitle>
         </CardHeader>
         <CardContent>
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <div>
-              <Label>Department</Label>
+              <Label className='py-2'>Department</Label>
               <select
                 value={selectedDepartment}
                 onChange={(e) => handleDepartmentChange(e.target.value)}
@@ -428,7 +435,7 @@ export default function MarksEntry({ examHead, departments, onGradeSaved }: Mark
             </div>
 
             <div>
-              <Label>Semester</Label>
+              <Label className='py-2'>Semester</Label>
               <select
                 value={selectedSemester}
                 onChange={(e) => handleSemesterChange(e.target.value)}
@@ -448,7 +455,7 @@ export default function MarksEntry({ examHead, departments, onGradeSaved }: Mark
 
       {selectedDepartment && selectedSemester && (
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
-          <Card>
+          <Card className='login'>
             <CardHeader>
               <CardTitle>Select Student ({students.length})</CardTitle>
             </CardHeader>
@@ -458,14 +465,14 @@ export default function MarksEntry({ examHead, departments, onGradeSaved }: Mark
                   No students found in this semester.
                 </div>
               ) : (
-                <div className="space-y-2 max-h-[600px] overflow-y-auto">
+                <div className="space-y-2 max-h-[600px] overflow-y-auto ">
                   {students.map((student) => (
                     <div
                       key={student.user_id}
                       onClick={() => handleStudentSelectForGrade(student)}
-                      className={`p-3 rounded-lg cursor-pointer transition ${
+                      className={`p-3 rounded-lg cursor-pointer transition border-[2px] border-black ${
                         selectedStudentForGrade?.user_id === student.user_id
-                          ? 'bg-purple-100 border-2 border-purple-500'
+                          ? 'bg-purple-100 border-2'
                           : 'bg-gray-50 hover:bg-gray-100'
                       }`}
                     >
@@ -483,7 +490,7 @@ export default function MarksEntry({ examHead, departments, onGradeSaved }: Mark
             </CardContent>
           </Card>
 
-          <Card>
+          <Card className='login'>
             <CardHeader>
               <CardTitle>
                 {selectedStudentForGrade 
@@ -494,7 +501,7 @@ export default function MarksEntry({ examHead, departments, onGradeSaved }: Mark
             <CardContent>
               {selectedStudentForGrade ? (
                 <div className="space-y-4">
-                  <div className="p-4 bg-purple-50 rounded-lg">
+                  <div className="p-4 bg-purple-50 rounded-lg border-2 border-black">
                     <div className="grid grid-cols-2 gap-2 text-sm">
                       <div><strong>Name:</strong> {selectedStudentForGrade.name}</div>
                       <div><strong>ID:</strong> {selectedStudentForGrade.student_id}</div>
@@ -527,7 +534,7 @@ export default function MarksEntry({ examHead, departments, onGradeSaved }: Mark
                   </div>
 
                   <div>
-                    <Label>Select Course</Label>
+                    <Label className='py-2'>Select Course</Label>
                     <select
                       value={selectedCourse}
                       onChange={(e) => handleCourseChange(e.target.value)}
@@ -610,7 +617,7 @@ export default function MarksEntry({ examHead, departments, onGradeSaved }: Mark
                       {(!getCourseGradeStatus(selectedCourse) || editingGrade) && (
                         <>
                           <div>
-                            <Label>Exam Type</Label>
+                            <Label className='py-2'>Exam Type</Label>
                             <select
                               value={examType}
                               onChange={(e) => setExamType(e.target.value as 'regular' | 'retake')}
@@ -622,7 +629,7 @@ export default function MarksEntry({ examHead, departments, onGradeSaved }: Mark
                           </div>
 
                           <div>
-                            <Label>Exam Marks (0-{selectedCourseInfo?.exam_marks_total || 75})</Label>
+                            <Label>Marks (0-100)</Label>
                             <Input 
                               type="text"
                               value={examMarks}

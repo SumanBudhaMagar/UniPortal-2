@@ -296,7 +296,7 @@ const RegisterPageComponent = () => {
   };
   return (
     <>
-    <Card className="w-full max-w-md">
+    <Card className="login">
       <CardHeader>
         <CardTitle>Sign Up</CardTitle>
         <CardDescription>Create a new account to get started</CardDescription>

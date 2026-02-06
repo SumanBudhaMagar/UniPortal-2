@@ -62,19 +62,19 @@ export default function StudentManagement({
   };
 
   return (
-    <Card>
+    <Card className='login'>
       <CardHeader className="flex flex-row justify-between items-center">
         <CardTitle>🎓 Students Management</CardTitle>
         <div className="flex gap-2">
           <Button 
             onClick={() => setShowBulkUpload(!showBulkUpload)}
-            className="bg-green-600 hover:bg-green-700"
+            className="hover:bg-orange-500 border-[2px] border-yellow-700"
           >
             📁 Bulk Upload
           </Button>
           <Button 
             onClick={() => setShowAddStudent(!showAddStudent)}
-            className="bg-blue-600 hover:bg-blue-700"
+            className="bg-white border-[2px] text-black border-black hover:bg-slate-200"
           >
             + Add Student
           </Button>
@@ -123,7 +123,7 @@ export default function StudentManagement({
 
         {/* Manual Add Form - UPDATED WITH SEMESTER */}
         {showAddStudent && (
-          <div className="mb-6 p-4 bg-blue-50 rounded-lg space-y-4">
+          <div className="mb-6 p-4 bg-orange-50 rounded-lg space-y-4">
             <div className="grid grid-cols-2 gap-4">
               <div>
                 <Label>Student Name *</Label>
@@ -172,13 +172,13 @@ export default function StudentManagement({
             <div className="flex gap-2">
               <Button 
                 onClick={handleAddStudent}
-                className="bg-green-600 hover:bg-green-700"
+                className="bg-white border-[2px] text-black border-black hover:bg-slate-200"
               >
                 Add Student
               </Button>
               <Button 
                 onClick={() => setShowAddStudent(false)} 
-                className="bg-gray-400"
+                className="bg-gray-400 hover:bg-slate-400 border-[2px] border-black"
               >
                 Cancel
               </Button>
@@ -196,7 +196,7 @@ export default function StudentManagement({
             students.map((student) => (
               <div 
                 key={student.id} 
-                className="flex justify-between items-center p-4 bg-gray-50 rounded-lg hover:bg-gray-100"
+                className="flex justify-between items-center p-4 rounded-lg hover:bg-slate-100 border-[2px] shadow-sm shadow-slate-500 border-slate-500"
               >
                 <div>
                   <div className="font-semibold flex items-center gap-2">

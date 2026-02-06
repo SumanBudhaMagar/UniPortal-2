@@ -375,18 +375,18 @@ export default function HODDashboard() {
   if (loading) return <div className="p-8">Loading...</div>;
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-purple-50 to-indigo-100">
+    <div className="min-h-screen bg-orange-50 font-work-sans">
       {/* Header */}
-      <div className="bg-gradient-to-r from-purple-600 to-indigo-600 text-white p-6 shadow-lg">
-        <div className="max-w-7xl mx-auto flex justify-between items-center">
+      <div className="yellow_container text-white p-6 shadow-lg">
+        <div className="max-w-7xl mx-auto flex items-end justify-end">
           <div>
-            <h1 className="text-3xl font-bold">👔 HOD Dashboard</h1>
-            <p className="text-purple-100">{department?.name} Department</p>
-            <p className="text-sm text-purple-200">Welcome, {hod?.name}</p>
+            <h1 className="heading text-3xl font-bold relative right-[-108px]">HOD Dashboard</h1>
+            <p className="font-medium text-[30px] text-white max-w-2xl text-center break-words relative right-[-100px]">{department?.name} Department</p>
+            <p className="sub-heading text-purple-100 relative right-[-100px]">Welcome, {hod?.name}</p>
           </div>
           <Button 
             onClick={handleLogout}
-            className="bg-white text-purple-600 hover:bg-purple-50"
+            className="bg-white text-black hover:bg-gray-200 tag"
           >
             Logout
           </Button>
